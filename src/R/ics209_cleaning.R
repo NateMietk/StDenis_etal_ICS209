@@ -11,9 +11,9 @@ library(purrr)
 
 ## Download and process State data
 # Creat directories for state data
-raw_prefix <- file.path("data", "raw")
+raw_prefix <- file.path("../data", "raw")
 us_prefix <- file.path(raw_prefix, "cb_2016_us_state_20m")
-ics_prefix <- file.path("data", "ics209")
+ics_prefix <- file.path("../data", "ics209")
 
 # Check if directory exists for all variable aggregate outputs, if not then create
 var_dir <- list(raw_prefix,
@@ -39,10 +39,10 @@ usa_shp <- st_read(dsn = us_prefix,
   mutate(group = 1)
 
 # Clean ICS-209 from 2001-2013 -----------------------------
-ics209_clean <- fread("data/ics209_2001_2013_wfonly.csv") %>%
+ics209_clean <- fread("data/ics209/tbls/ics209_2001_2013_wfonly.csv") %>%
   mutate_all(funs(replace(., is.na(.), 0))) 
-  as.tibble()
-  
+as.tibble()
+
 names(ics209_clean) %<>% tolower 
 
 ics209_clean <- ics209_clean %>% 
@@ -73,6 +73,7 @@ ics209_clean <- ics209_clean %>%
             emonth = last(month),
             eday = last(day),
             edoy = last(doy),
+            firedays = edoy - sdoy,
             area_ha = max(area_ha),
             area_km2 = max(area_km2),
             costs = max(costs),
@@ -84,15 +85,13 @@ ics209_clean <- ics209_clean %>%
             tot_personal = sum(imsr_total_personnel),
             tot_aerial = sum(imsr_num_aerial),
             max_agencies = max(imsr_num_agencies),
-            personal_per_size = tot_personal/area_km2,
-            agency_per_size = max_agencies/area_km2,
             cause = max(cause_binary),
             cause = ifelse(cause == "2", "Human", 
                            ifelse(cause =="1", "Lightning", "Unk")))
 
 # Make the cleaned ICS-209 data spatial  
 ics209_pt <- st_as_sf(ics209_clean, coords = c("long", "lat"), 
-         crs = 4326)
+                      crs = 4326)
 
 # Clip the ICS-209 data to the CONUS and remove unknown cause
 conus_209 <- st_intersection(ics209_pt, st_union(usa_shp)) %>%
