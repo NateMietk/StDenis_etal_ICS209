@@ -18,12 +18,11 @@ ggplot(t) +
   geom_sf(aes(fill = cause, colour = cause), size = 0.1)
 
 t <- wui209_shp %>%
-  group_by(Class, syear, cause) %>%
+  group_by(Class, cause) %>%
   summarise(costs = sum(costs),
             area_km2 = sum(area_km2))
 
 ics_sums_p <- t %>%
-  transform(Class = factor(Class, levels=c("WUI", "VLD", "Wildlands"))) %>%
   ggplot(aes(x = syear)) +
   geom_point(aes(y = costs/100000000, color = cause), size = 2) +
   geom_line(aes(y = costs/100000000, color = cause),  size = 0.5, alpha = 0.25) +
@@ -34,11 +33,10 @@ ics_sums_p <- t %>%
   theme_pub()  + 
   theme(axis.title = element_text(face = "bold"),
         strip.text = element_text(size = 10, face = "bold"),
-        legend.position = "none") +
-  facet_wrap(~ Class, ncol = 1, scales = "free")
+        legend.position = "none")
 
 ics_sums_s <- t %>%
-  transform(Class = factor(Class, levels=c("WUI", "VLD", "Wildlands"))) %>%
+  #transform(Class = factor(Class, levels=c("WUI", "VLD", "Wildlands"))) %>%
   ggplot(aes(x = syear)) +
   geom_point(aes(y = area_km2/10000, color = cause), size = 2) +
   geom_line(aes(y = area_km2/10000, color = cause),  size = 0.5, alpha = 0.25) +
@@ -49,8 +47,7 @@ ics_sums_s <- t %>%
   theme_pub()  + 
   theme(axis.title = element_text(face = "bold"),
         strip.text = element_text(size = 10, face = "bold"),
-        legend.position = "none") +
-  facet_wrap(~ Class, ncol = 1, scales = "free")
+        legend.position = "none") 
 
 grid.arrange(ics_sums_p, ics_sums_s, ncol =2)
 
