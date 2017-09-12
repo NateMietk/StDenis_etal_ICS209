@@ -115,4 +115,3 @@ if (!file.exists(file.path(ics_prefix, "ics209_wui_conus.gpkg"))) {
            driver = "GPKG",
            update=TRUE)}
 
-
