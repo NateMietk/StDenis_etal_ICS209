@@ -9,8 +9,6 @@ library(rvest)
 library(httr)
 library(purrr)
 
-source("src/R/ggplot_theme.R")
-
 ## Download and process State data
 # Creat directories for state data
 raw_prefix <- file.path("data", "raw")
@@ -81,6 +79,8 @@ ics209_clean <- ics209_clean %>%
             fatalities = max(fatalities),
             destroyed_res = max(destroyed_res),
             threatened_res = max(threatened_res),
+            max_personal = max(imsr_total_personnel),
+            max_aerial = max(imsr_num_aerial),
             tot_personal = sum(imsr_total_personnel),
             tot_aerial = sum(imsr_num_aerial),
             max_agencies = max(imsr_num_agencies),
@@ -98,72 +98,22 @@ ics209_pt <- st_as_sf(ics209_clean, coords = c("long", "lat"),
 conus_209 <- st_intersection(ics209_pt, st_union(usa_shp)) %>%
   filter(cause != "Unk")
 
-# Write out the shapefile.  Until we push to AWS, we need to join the WUI data in Arc due to memory constraints.
+# Write out the shapefile.
 if (!file.exists(file.path(ics_prefix, "ics209_conus.gpkg"))) {
   st_write(conus_209, file.path(ics_prefix, "ics209_conus.gpkg"), 
            driver = "GPKG",
            update=TRUE)}
 
-wui_shp <- st_read(dsn = file.path("data", "wui", "wui_us.gpkg"),
-                   layer = "wui_us", quiet= TRUE)
+wui_shp <- st_read(dsn = file.path("../data", "anthro", "wui_us.gpkg"),
+                   layer = "wui_us", quiet= TRUE) %>%
+  st_transform(crs = 4326)
 
-wui_209 <- st_intersection(ics209_pt, 
-                             st_transform(wui_shp, crs = 4326))
+wui_209 <- st_intersection(ics209_pt, wui_shp)
 
-
-
-
-
-
-
-
-ggplot(conus_209) +
-  geom_sf(aes(fill = cause, colour = cause), size = 0.1)
-
-t <- conus_209 %>%
-  group_by(syear, cause) %>%
-  summarise(costs = sum(costs),
-            area_km2 = sum(area_km2))
-
-ics_sums_p <- t %>%
-  ggplot(aes(x = syear)) +
-  geom_point(aes(y = costs/100000000, color = cause), size = 2) +
-  geom_line(aes(y = costs/100000000, color = cause),  size = 0.5, alpha = 0.25) +
-  geom_smooth(aes(y = costs/100000000, color = cause), method="glm", method.args = list(family = "poisson"),
-              se= FALSE, size = 0.75) +
-  scale_color_manual(values = c("#1F77B4", "#D62728")) +
-  xlab("Year") + ylab("Fire Suppression Cost \n(in hundreds of millions of dollars; $)") +
-  theme_pub()  + 
-  theme(axis.title = element_text(face = "bold"),
-        strip.text = element_text(size = 10, face = "bold"),
-        legend.position = "none") 
-
-ics_sums_s <- t %>%
-  ggplot(aes(x = syear)) +
-  geom_point(aes(y = area_km2/10000, color = cause), size = 2) +
-  geom_line(aes(y = area_km2/10000, color = cause),  size = 0.5, alpha = 0.25) +
-  geom_smooth(aes(y = area_km2/10000, color = cause), method="glm", method.args = list(family = "poisson"),
-              se = FALSE, size = 0.75) +
-  scale_color_manual(values = c("#1F77B4", "#D62728")) +
-  xlab("Year") + ylab("Burned Area \n(in tens of thousands; km2)") +
-  theme_pub()  + 
-  theme(axis.title = element_text(face = "bold"),
-        strip.text = element_text(size = 10, face = "bold"),
-        legend.position = "none") 
-
-grid.arrange(ics_sums_p, ics_sums_s, ncol =2)
-
-ics <- conus_209 %>%
-  ggplot(aes(x = log(area_km2))) +
-  geom_point(aes(y = log(tot_aerial), color = cause), size = 2) +
-  geom_smooth(aes(y = log(tot_aerial), color = cause), method="glm", method.args = list(family = "poisson"),
-              se= FALSE, size = 0.75) +
-  scale_color_manual(values = c("#1F77B4", "#D62728")) +
-  xlab("Year") + ylab("Fire Suppression Cost \n(in hundreds of millions of dollars; $)") +
-  theme_pub()  + 
-  theme(axis.title = element_text(face = "bold"),
-        strip.text = element_text(size = 10, face = "bold"),
-        legend.position = "none") 
-
+# Write out the shapefile.  
+if (!file.exists(file.path(ics_prefix, "ics209_wui_conus.gpkg"))) {
+  st_write(wui_209, file.path(ics_prefix, "ics209_wui_conus.gpkg"), 
+           driver = "GPKG",
+           update=TRUE)}
 
 
