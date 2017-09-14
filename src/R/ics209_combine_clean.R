@@ -17,14 +17,13 @@ source("src/R/ics209_scrape_cleaning.R")
 
 make_consensus <- function(df) {
   
-  variable_name <- unique(final$variable_name)
-  stopifnot(length(variable_name) == 1)
-  
+  variable_name <- unique(df$variable_name)
+
   if (variable_name %in% c('lat', 'lon')) {
-    consensus <- ifelse(final$value != 0, final$value, "help")
+    consensus <- ifelse(df$value != 0, df$value, df$value)
   } 
   
-  output_df <- distinct(final, incidentnum, syear, state, variable_name) %>%
+  output_df <- distinct(df, incidentnum, syear, state, variable_name) %>%
     mutate(consensus_value = consensus)
   
   stopifnot(nrow(output_df) == 1)
