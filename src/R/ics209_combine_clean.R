@@ -102,7 +102,6 @@ cause_consensus <- function(val_x, val_y) {
 # Generate consensus values  ----------------------------------------------
 final <- fam_clean %>%
   # temporarily subset
-  filter(syear == 2002, state == "NM") %>%
   left_join(scrape_clean, by = c("incidentnum", "syear", "state")) %>% 
   gather(variable, value, -incidentnum, -syear, -state) %>%
   mutate(variable = gsub("\\.x", "~x", variable), 
