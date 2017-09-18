@@ -1,17 +1,6 @@
 
 # Helper functions --------------------------------------------------------
 
-classify_ignition <-  function(x) {
-  # break out fires into small, med, large
-  # input: 
-  #   - x: vector of fire sizes
-  # output: 
-  #   - y: vector (same length) of classified fire sizes ----- Km2
-  as.factor(ifelse(x == "Human", 2,
-                   ifelse(x == "Lightning", 1,
-                          0)))
-}
-
 dollarToNumber_vectorised <- function(vector) {
   # Want the vector as character rather than factor while
   # we're doing text processing operations
