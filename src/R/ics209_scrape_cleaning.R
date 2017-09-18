@@ -43,10 +43,10 @@ scrape_clean <- SIT_rep %>%
          cause_binary = ifelse(cause == "Human", "2", 
                                ifelse(cause =="Lightning", "1", "0")),
          total.pers = as.numeric(total.pers),
-         home.damaged = x.res.damaged,
-         home.threat = as.numeric(x.res.threatened),
-         home.destroyed = as.numeric(x.res.destroyed),
-         aerial.support = hel1.sr + hel2.sr + hel3.sr,
+         home.damaged = ifelse(x.res.damaged == " ", 0, x.res.damaged),
+         home.threat = ifelse(x.res.threatened == " ", 0, x.res.threatened),
+         home.destroyed = ifelse(x.res.destroyed == " ", 0, x.res.destroyed),
+         #aerial.support = hel1.sr + hel2.sr + hel3.sr, # This captures the helicopter personal only
          agency.support = (as.numeric(ag) + as.numeric(aphis) + as.numeric(bia) + as.numeric(blm) + as.numeric(bor) + as.numeric(c.l) + as.numeric(cdf) + as.numeric(dc) + as.numeric(ddq) + 
                              as.numeric(doc) + as.numeric(dod) + as.numeric(fws) + as.numeric(ia) + as.numeric(intl) + as.numeric(lgr) + as.numeric(nps) + as.numeric(oes) + as.numeric(pri) + 
                              as.numeric(st) + as.numeric(usfs) + as.numeric(wxw) + as.numeric(cnty) + as.numeric(othr) + as.numeric(dhs) + as.numeric(aphi)),
@@ -56,7 +56,7 @@ scrape_clean <- SIT_rep %>%
          costs = ifelse(estfincosts == 0 & coststdate > 1, coststdate,
                         estfincosts)) %>%
   select(incidentnum, incidentname, lon, lat, inctype, rdate, rdoy, rday, rmonth, ryear, sdate, sdoy, sday, smonth, syear, report_length,
-         area_km2, state, cause_binary, costs, coststdate, estfincosts, total.pers, aerial.support, agency.support, evacs, human.threat, fatalities, home.threat, home.damaged, home.destroyed) %>%
+         area_km2, state, cause_binary, costs, coststdate, estfincosts, total.pers, agency.support, evacs, human.threat, fatalities, home.threat, home.damaged, home.destroyed) %>%
   filter(inctype == "Wildland Fire(Monitor/Confine/Contain) " | 
            inctype == "Wildland Fire(Full Suppression/Perimeter Control)"  | 
            inctype == "Wildland Fire(Point or Zone Protection/Limited Perimeter Control)" | 
@@ -69,7 +69,7 @@ scrape_clean <- SIT_rep %>%
            inctype == "Wildfire(Point Zone Protection)")
 
 scrape_clean <- scrape_clean %>%
-  group_by(incidentnum, syear, state) %>%
+  group_by(incidentnum) %>%
   summarise(lat = max(lat),
             long = min(lon),
             sdate = min(sdate),
@@ -88,9 +88,9 @@ scrape_clean <- scrape_clean %>%
             home.destroyed = max(home.destroyed),
             home.threat = max(home.threat),
             max.pers = max(total.pers),
-            max.aerial.support = max(aerial.support),
+            #max.aerial.support = max(aerial.support),
             tot.personal = sum(total.pers),
-            tot.aerial = sum(aerial.support),
+            #tot.aerial = sum(aerial.support),
             max.agency.support = max(agency.support),
             cause = max(cause_binary),
             cause = ifelse(cause == "2", "Human", 
