@@ -11,15 +11,14 @@ SIT_rep <- rbindlist(mylist, fill = TRUE) %>%
   mutate_all(funs(replace(., is.na(.), 0))) %>%
   select(-othr)
 
-SIT_rep <- fread("data/ics209/ll/ics209Incidents-cleaned_ll.csv") %>%
-  left_join(., SIT_rep, by = c("IncidentNum",	"IncidentName")) %>%
-  mutate(Lon = ifelse(LONGITUDE_C > 0, -LONGITUDE_C, LONGITUDE_C),
-         Lon = ifelse(is.na(LONGITUDE_C), 0, LONGITUDE_C),
-         Lat = ifelse(is.na(LATITUDE_C), 0, LATITUDE_C))
+SIT_ll <- fread("data/ics209/ll/ics209Incidents-cleaned_ll.csv") %>%
+  mutate(syear = Year) %>%
+  select(-IncidentName)
 
 names(SIT_rep) %<>% tolower 
+names(SIT_ll) %<>% tolower 
 
-scrape_clean <- SIT_rep %>%
+scrape <- SIT_rep %>%
   separate(state.unit, "state", sep = "-", extra = "drop") %>%
   mutate(rdate = mdy(date),
          rdoy = yday(rdate),
@@ -42,11 +41,11 @@ scrape_clean <- SIT_rep %>%
                        as.numeric(paste0(acres, sqmile))),
          cause_binary = ifelse(cause == "Human", "2", 
                                ifelse(cause =="Lightning", "1", "0")),
-         total.pers = as.numeric(total.pers),
-         home.damaged = ifelse(x.res.damaged == " ", 0, x.res.damaged),
-         home.threat = ifelse(x.res.threatened == " ", 0, x.res.threatened),
-         home.destroyed = ifelse(x.res.destroyed == " ", 0, x.res.destroyed),
-         #aerial.support = hel1.sr + hel2.sr + hel3.sr, # This captures the helicopter personal only
+         total.pers = ifelse(is.na(as.numeric(gsub(",", "", total.pers))), 0, as.numeric(gsub(",", "", total.pers))),
+         home.damaged = ifelse(is.na(as.numeric(gsub(",", "", x.res.damaged))), 0, as.numeric(gsub(",", "", x.res.damaged))),
+         home.threat = ifelse(is.na(as.numeric(gsub(",", "", x.res.threatened))), 0, as.numeric(gsub(",", "", x.res.threatened))),
+         home.destroyed = ifelse(is.na(as.numeric(gsub(",", "", x.res.destroyed))), 0, as.numeric(gsub(",", "", x.res.destroyed))),
+         aerial.support = 0,
          agency.support = (as.numeric(ag) + as.numeric(aphis) + as.numeric(bia) + as.numeric(blm) + as.numeric(bor) + as.numeric(c.l) + as.numeric(cdf) + as.numeric(dc) + as.numeric(ddq) + 
                              as.numeric(doc) + as.numeric(dod) + as.numeric(fws) + as.numeric(ia) + as.numeric(intl) + as.numeric(lgr) + as.numeric(nps) + as.numeric(oes) + as.numeric(pri) + 
                              as.numeric(st) + as.numeric(usfs) + as.numeric(wxw) + as.numeric(cnty) + as.numeric(othr) + as.numeric(dhs) + as.numeric(aphi)),
@@ -55,8 +54,8 @@ scrape_clean <- SIT_rep %>%
          estfincosts = round(ifelse(is.na(dollarToNumber_vectorised(est.final.cost)), 0, dollarToNumber_vectorised(est.final.cost)),2),
          costs = ifelse(estfincosts == 0 & coststdate > 1, coststdate,
                         estfincosts)) %>%
-  select(incidentnum, incidentname, lon, lat, inctype, rdate, rdoy, rday, rmonth, ryear, sdate, sdoy, sday, smonth, syear, report_length,
-         area_km2, state, cause_binary, costs, coststdate, estfincosts, total.pers, agency.support, evacs, human.threat, fatalities, home.threat, home.damaged, home.destroyed) %>%
+  select(incidentnum, incidentname, inctype, rdate, rdoy, rday, rmonth, ryear, sdate, sdoy, sday, smonth, syear, report_length,
+         area_km2, state, cause_binary, costs, coststdate, estfincosts, total.pers, agency.support, aerial.support, fatalities, home.threat, home.damaged, home.destroyed) %>%
   filter(inctype == "Wildland Fire(Monitor/Confine/Contain) " | 
            inctype == "Wildland Fire(Full Suppression/Perimeter Control)"  | 
            inctype == "Wildland Fire(Point or Zone Protection/Limited Perimeter Control)" | 
@@ -66,10 +65,14 @@ scrape_clean <- SIT_rep %>%
            inctype == "Wildfire(Confine)" | 
            inctype == "Wildfire(Full Suppression)"  | 
            inctype == "Wildfire(Monitor)" | 
-           inctype == "Wildfire(Point Zone Protection)")
+           inctype == "Wildfire(Point Zone Protection)") %>%
+  left_join(., SIT_ll, by = c("incidentnum",	"syear")) %>%
+  mutate(lon = ifelse(longitude_c > 0, -longitude_c, longitude_c),
+         lon = ifelse(is.na(lon), 0, lon),
+         lat = ifelse(is.na(latitude_c), 0, latitude_c))
 
-scrape_clean <- scrape_clean %>%
-  group_by(incidentnum) %>%
+scrape_clean <- scrape %>%
+  group_by(incidentnum, syear, state) %>%
   summarise(lat = max(lat),
             long = min(lon),
             sdate = min(sdate),
@@ -88,12 +91,11 @@ scrape_clean <- scrape_clean %>%
             home.destroyed = max(home.destroyed),
             home.threat = max(home.threat),
             max.pers = max(total.pers),
-            #max.aerial.support = max(aerial.support),
+            max.aerial.support = 0,
             tot.personal = sum(total.pers),
-            #tot.aerial = sum(aerial.support),
+            tot.aerial = 0,
             max.agency.support = max(agency.support),
             cause = max(cause_binary),
             cause = ifelse(cause == "2", "Human", 
                            ifelse(cause =="1", "Lightning", "Unk")))
-
 
