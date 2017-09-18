@@ -29,12 +29,12 @@ usa_shp <- st_read(dsn = us_prefix,
   mutate(group = 1)
 
 # Clean ICS-209 from 2001-2013 -----------------------------
-fam_clean <- fread("data/ics209/tbls/ics209_2001_2013_wfonly.csv") %>%
+fam_rep <- fread("data/ics209/tbls/ics209_2001_2013_wfonly.csv") %>%
   mutate_all(funs(replace(., is.na(.), 0))) 
 
-names(fam_clean) %<>% tolower 
+names(fam_rep) %<>% tolower 
 
-fam_clean <- fam_clean %>% 
+fam <- fam_rep %>% 
   filter(!(un_ustate %in% c("AK", "HI", "PR"))) %>%
   filter(type_inc != "RX") %>%
   mutate(long = -longitude,
@@ -52,7 +52,9 @@ fam_clean <- fam_clean %>%
          costs = ifelse(est_final_costs == 0 & costs_to_date > 1, costs_to_date,
                         est_final_costs),
          cause_binary = ifelse(cause == "H", "2", 
-                               ifelse(cause =="L", "1", "0"))) %>%
+                               ifelse(cause =="L", "1", "0")))
+
+fam_clean <- fam %>%
   group_by(incidentnum, syear, state) %>%
   summarise(lat = max(lat),
             long = min(long),
@@ -78,6 +80,4 @@ fam_clean <- fam_clean %>%
             cause = max(cause_binary),
             cause = ifelse(cause == "2", "Human", 
                            ifelse(cause =="1", "Lightning", "Unk")))
-
-
 
