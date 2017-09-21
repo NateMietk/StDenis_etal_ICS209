@@ -121,26 +121,21 @@ ics209_pt <- st_as_sf(ics209_clean, coords = c("long", "lat"),
                       crs = 4326)
 
 # Clip the ICS-209 data to the CONUS and remove unknown cause
-conus_209 <- st_intersection(ics209_pt, st_union(usa_shp)) %>%
-  filter(cause != "Unk")
+conus_209 <- st_intersection(ics209_pt, st_union(usa_shp))
 
-# ggplot(t) +
-#   geom_sf(aes(fill = cause, colour = cause), size = 0.1)
 
 # Write out the shapefile.
-if (!file.exists(file.path(ics_prefix, "ics209_conus.gpkg"))) {
-  st_write(conus_209, file.path(ics_prefix, "ics209_conus.gpkg"), 
+st_write(conus_209, paste0("../data", "/anthro/", "ics209_conus.gpkg"), 
            driver = "GPKG",
-           update=TRUE)}
+           update=TRUE)
 
 wui_shp <- st_read(dsn = file.path("../data", "anthro", "wui_us.gpkg"),
                    layer = "wui_us", quiet= TRUE) %>%
   st_transform(crs = 4326)
 
-wui_209 <- st_intersection(ics209_pt, wui_shp)
+wui_209 <- st_intersection(conus_209, wui_shp) 
 
 # Write out the shapefile.  
-if (!file.exists(file.path(ics_prefix, "ics209_wui_conus.gpkg"))) {
-  st_write(wui_209, file.path(ics_prefix, "ics209_wui_conus.gpkg"), 
+st_write(wui_209, paste0("../data", "/anthro/", "ics209_wui_conus.gpkg"), 
            driver = "GPKG",
-           update=TRUE)}
+           update=TRUE)
