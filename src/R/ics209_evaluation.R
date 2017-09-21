@@ -9,6 +9,7 @@ library(ggmap)
 
 source("src/R/ggplot_theme.R")
 
+
 wui209_shp <- st_read(dsn = file.path("data", "spatial", "ics209_wui_conus.gpkg"),
                    layer = "ics209_wui_conus", quiet= TRUE) %>%
   st_cast("POINT") %>%
