@@ -46,9 +46,7 @@ scrape <- SIT_rep %>%
          home.threat = ifelse(is.na(as.numeric(gsub(",", "", x.res.threatened))), 0, as.numeric(gsub(",", "", x.res.threatened))),
          home.destroyed = ifelse(is.na(as.numeric(gsub(",", "", x.res.destroyed))), 0, as.numeric(gsub(",", "", x.res.destroyed))),
          aerial.support = 0,
-         agency.support = (as.numeric(ag) + as.numeric(aphis) + as.numeric(bia) + as.numeric(blm) + as.numeric(bor) + as.numeric(c.l) + as.numeric(cdf) + as.numeric(dc) + as.numeric(ddq) + 
-                             as.numeric(doc) + as.numeric(dod) + as.numeric(fws) + as.numeric(ia) + as.numeric(intl) + as.numeric(lgr) + as.numeric(nps) + as.numeric(oes) + as.numeric(pri) + 
-                             as.numeric(st) + as.numeric(usfs) + as.numeric(wxw) + as.numeric(cnty) + as.numeric(othr) + as.numeric(dhs) + as.numeric(aphi)),
+         agency.support = 0,
          inctype = incident.type, 
          coststdate = round(ifelse(is.na(dollarToNumber_vectorised(ctd)), 0, dollarToNumber_vectorised(ctd)), 2),
          estfincosts = round(ifelse(is.na(dollarToNumber_vectorised(est.final.cost)), 0, dollarToNumber_vectorised(est.final.cost)),2),
@@ -75,8 +73,6 @@ scrape_clean <- scrape %>%
   group_by(incidentnum, syear, state) %>%
   summarise(lat = max(lat),
             long = min(lon),
-            sdate = min(sdate),
-            rdate = max(rdate),
             smonth = min(smonth),
             sday = min(sday),
             sdoy = min(sdoy),
@@ -91,10 +87,10 @@ scrape_clean <- scrape %>%
             home.destroyed = max(home.destroyed),
             home.threat = max(home.threat),
             max.pers = max(total.pers),
-            max.aerial.support = 0,
-            tot.personal = sum(total.pers),
+            max.aerial = 0,
+            tot.pers = sum(total.pers),
             tot.aerial = 0,
-            max.agency.support = max(agency.support),
+            max.agency.support = 0,
             cause = max(cause_binary),
             cause = ifelse(cause == "2", "Human", 
                            ifelse(cause =="1", "Lightning", "Unk")))

@@ -40,13 +40,15 @@ make_consensus <- function(df) {
     consensus <- ifelse(identical(val_x, 0) | is.na(val_x), val_y, val_x)
   } else if (variable_name %in% c('costs', 'fatalities', 'home.destroyed', 
                                   'home.threat', 'max.pers', 
-                                  'max.aerial.support', 'tot.personal', 
+                                  'max.aerial', 'tot.pers', 
                                   'tot.aerial', 'max.agency.support', 
                                   'eday', 'edoy', 'emonth', 'eyear', 
                                   'report_length', 'area_km2')) {
     consensus <- max(c(val_x, val_y), na.rm = TRUE)
   } else if (variable_name %in% c('sday', 'sdoy', 'smonth')) {
     consensus <- min(c(val_x, val_y), na.rm = TRUE) 
+  } else if (variable_name %in% c('eday', 'edoy', 'emonth')) {
+    consensus <- max(c(val_x, val_y), na.rm = TRUE) 
   } else if (variable_name == 'cause') {
     consensus <- cause_consensus(val_x, val_y)
   } else {
@@ -59,7 +61,6 @@ make_consensus <- function(df) {
   stopifnot(nrow(output_df) == 1)
   output_df
 }
-
 
 cause_consensus <- function(val_x, val_y) {
   # helper function to generate consensus for fire cause
@@ -98,9 +99,8 @@ cause_consensus <- function(val_x, val_y) {
 }
 
 
-
 # Generate consensus values  ----------------------------------------------
-final <- fam_clean %>%
+ics209_clean <- fam_clean %>%
   # temporarily subset
   left_join(scrape_clean, by = c("incidentnum", "syear", "state")) %>% 
   gather(variable, value, -incidentnum, -syear, -state) %>%
@@ -110,31 +110,10 @@ final <- fam_clean %>%
   separate(variable, into = c('variable_name', 'source_df'), sep = "~") %>%
   filter(!(variable_name %in% c('sdate', 'rdate'))) %>%
   group_by(incidentnum, syear, state, variable_name) %>% 
-  do(make_consensus(.))
-
-
-# Count the number of occurrences for each cause
-final %>%
-  filter(variable_name == 'cause') %>%
-  group_by(consensus_value) %>%
-  summarize(n = n())
-
-
-# look at the raw data that have conflicting causes
-fam_clean %>%
-  # temporarily subset
-  filter(syear == 2002, state == "NM") %>%
-  left_join(scrape_clean, by = c("incidentnum", "syear", "state")) %>%
-  filter(identical(cause.x, 'Lightning') & identical(cause.y, 'Human') | 
-           identical(cause.x, 'Human') & identical(cause.y, 'Lightning'))
-
-
-
-
-
-
-
-
+  do(make_consensus(.)) %>%
+  spread(variable_name, consensus_value, convert = TRUE) %>%
+  select(incidentnum, lat, long, state, area_km2, cause, sdoy, sday, smonth, syear, edoy, eday, emonth, eyear, report_length,
+         costs, fatalities, home.destroyed, home.threat, max.aerial, tot.aerial, max.pers, tot.pers, max.agency.support)
 
 
 # Make the cleaned ICS-209 data spatial  
@@ -144,6 +123,9 @@ ics209_pt <- st_as_sf(ics209_clean, coords = c("long", "lat"),
 # Clip the ICS-209 data to the CONUS and remove unknown cause
 conus_209 <- st_intersection(ics209_pt, st_union(usa_shp)) %>%
   filter(cause != "Unk")
+
+# ggplot(t) +
+#   geom_sf(aes(fill = cause, colour = cause), size = 0.1)
 
 # Write out the shapefile.
 if (!file.exists(file.path(ics_prefix, "ics209_conus.gpkg"))) {
