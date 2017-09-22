@@ -24,12 +24,12 @@ if (!file.exists(us_shp)) {
 
 usa_shp <- st_read(dsn = us_prefix,
                    layer = "cb_2016_us_state_20m", quiet= TRUE) %>%
-  st_transform(crs = 4326) %>%  # e.g. US National Atlas Equal Area
+  st_transform("+proj=longlat +datum=WGS84") %>%  # e.g. US National Atlas Equal Area
   filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico"))) %>%
   mutate(group = 1)
 
 # Clean ICS-209 from 2001-2013 -----------------------------
-fam_rep <- fread("data/ics209/tbls/ics209_2001_2013_wfonlyv2.csv") %>%
+fam_rep <- fread("data/ics209/input_tbls/famweb/ics209_2001_2013_wfonlyv2.csv") %>%
   mutate_all(funs(replace(., is.na(.), 0))) 
 
 names(fam_rep) %<>% tolower 

@@ -118,11 +118,10 @@ ics209_clean <- fam_clean %>%
 
 # Make the cleaned ICS-209 data spatial  
 ics209_pt <- st_as_sf(ics209_clean, coords = c("long", "lat"), 
-                      crs = 4326)
+                      crs = "+proj=longlat +datum=WGS84")
 
 # Clip the ICS-209 data to the CONUS and remove unknown cause
 conus_209 <- st_intersection(ics209_pt, st_union(usa_shp))
-
 
 # Write out the shapefile.
 st_write(conus_209, paste0("../data", "/anthro/", "ics209_conus.gpkg"), 
@@ -131,7 +130,7 @@ st_write(conus_209, paste0("../data", "/anthro/", "ics209_conus.gpkg"),
 
 wui_shp <- st_read(dsn = file.path("../data", "anthro", "wui_us.gpkg"),
                    layer = "wui_us", quiet= TRUE) %>%
-  st_transform(crs = 4326)
+  st_transform(crs = "+proj=longlat +datum=WGS84")
 
 wui_209 <- st_intersection(conus_209, wui_shp) 
 

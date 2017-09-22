@@ -1,7 +1,7 @@
 # This script is to call in and clean the scraped data from Lise.
 
 # Create list of all CSV files to import
-sit_files <- list.files("data/sitrep_scrape", pattern = "csv", full.names = TRUE)
+sit_files <- list.files("data/ics209/input_tbls/sitrep_scrape", pattern = "csv", full.names = TRUE)
 
 # Read in all files and append to list
 mylist <- lapply(sit_files, fread, header= TRUE, stringsAsFactors = TRUE, check.names = TRUE)
@@ -11,7 +11,7 @@ SIT_rep <- rbindlist(mylist, fill = TRUE) %>%
   mutate_all(funs(replace(., is.na(.), 0))) %>%
   select(-othr)
 
-SIT_ll <- fread("data/ics209/ll/ics209Incidents-cleaned_ll.csv") %>%
+SIT_ll <- fread("data/ics209/input_tbls/latlong/ics209Incidents-cleaned_ll.csv") %>%
   mutate(syear = Year) %>%
   select(-IncidentName)
 
