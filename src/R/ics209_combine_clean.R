@@ -38,11 +38,13 @@ make_consensus <- function(df) {
   
   if (variable_name %in% c('lat', 'long')) {
     consensus <- ifelse(identical(val_x, 0) | is.na(val_x), val_y, val_x)
+  } else if (variable_name == "incidentname") {
+    consensus <- ifelse(identical(val_x, 0) | is.na(val_x), val_y, val_x)
   } else if (variable_name %in% c('costs', 'fatalities', 'home.destroyed', 
                                   'home.threat', 'max.pers', 
                                   'max.aerial', 'tot.pers', 
                                   'tot.aerial', 'max.agency.support', 
-                                  'eday', 'edoy', 'emonth', 'eyear', 
+                                  'eday', 'edoy', 'emonth', 'eyear', 'syear',
                                   'report_length', 'area_km2')) {
     consensus <- max(c(val_x, val_y), na.rm = TRUE)
   } else if (variable_name %in% c('sday', 'sdoy', 'smonth')) {
@@ -102,17 +104,17 @@ cause_consensus <- function(val_x, val_y) {
 # Generate consensus values  ----------------------------------------------
 ics209_clean <- fam_clean %>%
   # temporarily subset
-  left_join(scrape_clean, by = c("incidentnum", "syear", "state")) %>% 
-  gather(variable, value, -incidentnum, -syear, -state) %>%
+  left_join(scrape_clean, by = c("incidentnum", "eyear", "state")) %>% 
+  gather(variable, value, -incidentnum, -eyear, -state) %>%
   mutate(variable = gsub("\\.x", "~x", variable), 
          variable = gsub("\\.y", "~y", variable), 
          variable = gsub("rdate", "rdate~y", variable)) %>%
   separate(variable, into = c('variable_name', 'source_df'), sep = "~") %>%
   filter(!(variable_name %in% c('sdate', 'rdate'))) %>%
-  group_by(incidentnum, syear, state, variable_name) %>% 
+  group_by(incidentnum, eyear, state, variable_name) %>% 
   do(make_consensus(.)) %>%
   spread(variable_name, consensus_value, convert = TRUE) %>%
-  select(incidentnum, lat, long, state, area_km2, cause, sdoy, sday, smonth, syear, edoy, eday, emonth, eyear, report_length,
+  select(incidentnum, incidentname, lat, long, state, area_km2, cause, sdoy, sday, smonth, syear, edoy, eday, emonth, eyear, report_length,
          costs, fatalities, home.destroyed, home.threat, max.aerial, tot.aerial, max.pers, tot.pers, max.agency.support)
 
 

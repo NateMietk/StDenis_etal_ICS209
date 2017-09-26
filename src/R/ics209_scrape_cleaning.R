@@ -20,11 +20,12 @@ names(SIT_ll) %<>% tolower
 
 scrape <- SIT_rep %>%
   separate(state.unit, "state", sep = "-", extra = "drop") %>%
-  mutate(rdate = mdy(date),
+  mutate(incidentname = as.factor(incidentname),
+         rdate = mdy(date),
          rdoy = yday(rdate),
          rmonth = month(rdate),
          rday = day(rdate),
-         ryear = year(rdate),
+         eyear = year(rdate),
          sdate = floor_date(mdy_hm(start), "day"),
          sdoy = yday(sdate),
          smonth = month(sdate),
@@ -52,7 +53,7 @@ scrape <- SIT_rep %>%
          estfincosts = round(ifelse(is.na(dollarToNumber_vectorised(est.final.cost)), 0, dollarToNumber_vectorised(est.final.cost)),2),
          costs = ifelse(estfincosts == 0 & coststdate > 1, coststdate,
                         estfincosts)) %>%
-  select(incidentnum, incidentname, inctype, rdate, rdoy, rday, rmonth, ryear, sdate, sdoy, sday, smonth, syear, report_length,
+  select(incidentnum, incidentname, inctype, rdate, rdoy, rday, rmonth, eyear, sdate, sdoy, sday, smonth, syear, report_length,
          area_km2, state, cause_binary, costs, coststdate, estfincosts, total.pers, agency.support, aerial.support, fatalities, home.threat, home.damaged, home.destroyed) %>%
   filter(inctype == "Wildland Fire(Monitor/Confine/Contain) " | 
            inctype == "Wildland Fire(Full Suppression/Perimeter Control)"  | 
@@ -70,16 +71,17 @@ scrape <- SIT_rep %>%
          lat = ifelse(is.na(latitude_c), 0, latitude_c))
 
 scrape_clean <- scrape %>%
-  group_by(incidentnum, syear, state) %>%
-  summarise(lat = max(lat),
+  group_by(incidentnum, eyear, state) %>%
+  summarise(incidentname = last(incidentname),
+            lat = max(lat),
             long = min(lon),
-            smonth = min(smonth),
-            sday = min(sday),
-            sdoy = min(sdoy),
-            eyear = max(ryear),
             emonth = max(rmonth),
             eday = max(rday),
             edoy = max(rdoy),
+            syear = ifelse(is.na(max(syear)), max(eyear), max(syear)),
+            smonth = ifelse(is.na(min(smonth)), min(emonth), min(smonth)),
+            sday = ifelse(is.na(min(sday)), min(eday), min(sday)),
+            sdoy = ifelse(is.na(min(sdoy)), min(edoy), min(sdoy)),
             report_length = max(edoy - sdoy),
             area_km2 = max(area_km2),
             costs = max(costs),
