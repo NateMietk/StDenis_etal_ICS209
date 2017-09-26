@@ -40,11 +40,12 @@ fam <- fam_rep %>%
   mutate(long = -longitude,
          lat = latitude,
          incidentnum = incident_number,
+         incidentname = as.factor(incident_name),
          rdate = mdy(report_date),
          rdoy = yday(rdate),
          rmonth = month(rdate),
          rday = day(rdate),
-         ryear = year(rdate),
+         eyear = year(rdate),
          sdate = floor_date(mdy_hm(start_date), "day"),
          sdoy = yday(sdate),
          smonth = month(sdate),
@@ -61,16 +62,17 @@ fam <- fam_rep %>%
                                ifelse(cause =="L", "1", "0")))
 
 fam_clean <- fam %>%
-  group_by(incidentnum, syear, state) %>%
-  summarise(lat = max(lat),
+  group_by(incidentnum, eyear, state) %>%
+  summarise(incidentname = last(incidentname),
+            lat = max(lat),
             long = min(long),
-            smonth = min(smonth),
-            sday = min(sday),
-            sdoy = min(sdoy),
-            eyear = max(ryear),
             emonth = max(rmonth),
             eday = max(rday),
             edoy = max(rdoy),
+            syear = ifelse(is.na(max(syear)), max(eyear), max(syear)),
+            smonth = ifelse(is.na(min(smonth)), min(emonth), min(smonth)),
+            sday = ifelse(is.na(min(sday)), min(eday), min(sday)),
+            sdoy = ifelse(is.na(min(sdoy)), min(edoy), min(sdoy)),
             report_length = max(edoy - sdoy),
             area_km2 = max(area_km2),
             costs = max(costs),
