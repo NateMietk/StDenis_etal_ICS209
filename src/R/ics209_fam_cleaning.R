@@ -204,6 +204,8 @@ fam_clean <- fam %>%
             cause = ifelse(cause == "2", "Human", 
                            ifelse(cause =="1", "Lightning", "Unk")))
 
+write_csv(fam_clean, path = "data/ics209/output_tbls/ics209_conus.csv")
+
 
 # Make the cleaned ICS-209 data spatial  
 fam_clean_pt <- st_as_sf(fam_clean, coords = c("long", "lat"), 
