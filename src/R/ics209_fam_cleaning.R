@@ -190,7 +190,6 @@ fam_clean <- fam %>%
             smonth = ifelse(is.na(min(smonth)), min(emonth), min(smonth)),
             sday = ifelse(is.na(min(sday)), min(eday), min(sday)),
             sdoy = ifelse(is.na(min(sdoy)), min(edoy), min(sdoy)),
-            report_length = max(edoy - sdoy),
             area_km2 = max(area_km2),
             costs = max(costs),
             fatalities = max(fatalities),
@@ -204,4 +203,30 @@ fam_clean <- fam %>%
             cause = max(cause_binary),
             cause = ifelse(cause == "2", "Human", 
                            ifelse(cause =="1", "Lightning", "Unk")))
+
+
+# Make the cleaned ICS-209 data spatial  
+fam_clean_pt <- st_as_sf(fam_clean, coords = c("long", "lat"), 
+                      crs = "+proj=longlat +datum=WGS84")
+
+# Clip the ICS-209 data to the CONUS and remove unknown cause
+conus_209 <- st_intersection(fam_clean_pt, st_union(usa_shp))
+
+write_csv(conus_209, path = "data/ics209/output_tbls/ics209_conus.csv")
+
+# Write out the shapefile.
+st_write(conus_209, paste0("../data", "/anthro/", "ics209_conus.gpkg"), 
+         driver = "GPKG",
+         update=TRUE)
+
+wui_shp <- st_read(dsn = file.path("../data", "anthro", "wui_us.gpkg"),
+                   layer = "wui_us", quiet= TRUE) %>%
+  st_transform(crs = "+proj=longlat +datum=WGS84")
+
+wui_209 <- st_intersection(conus_209, wui_shp) 
+
+# Write out the shapefile.  
+st_write(wui_209, paste0("../data", "/anthro/", "ics209_wui_conus.gpkg"), 
+         driver = "GPKG",
+         update=TRUE)
 
