@@ -1,4 +1,4 @@
-incident_unique_id,old_cost,fix_cost
+incident_unique_id,est_final_costs,fix_cost
 CA-ANF-4306|2007|1,300000000,3000000
 NC-NCS-08-048-065|2008|1,270000000,27000000
 AZ-COP-001102|2011|1,235000000,2350000
