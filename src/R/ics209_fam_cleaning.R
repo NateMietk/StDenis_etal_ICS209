@@ -72,8 +72,9 @@ fam <- fam_rep %>%
                         est_final_costs_c))
 
 fam_clean <- fam %>%
-  group_by(incidentnum, eyear, state) %>%
-  summarise(incidentname = last(incidentname),
+  group_by(incident_unique_id, eyear, state) %>%
+  summarise(incidentnum = last(incidentnum),
+            incidentname = last(incidentname),
             lat = max(lat),
             long = min(long),
             emonth = max(rmonth),

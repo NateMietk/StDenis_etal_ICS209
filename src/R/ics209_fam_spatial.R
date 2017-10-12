@@ -8,7 +8,10 @@ fam_clean_pt <- st_as_sf(fam_clean, coords = c("long", "lat"),
 # Clip the ICS-209 data to the CONUS and remove unknown cause
 conus_209 <- st_intersection(fam_clean_pt, st_union(usa_shp))
 
+erratics <- st_difference(fam_clean_pt, st_union(usa_shp))
+
 write_csv(conus_209, path = "data/ics209/output_tbls/ics209_conus.csv")
+write_csv(erratics, path = "data/ics209/output_tbls/ics209_erratics.csv")
 
 # Write out the shapefile.
 st_write(conus_209, paste0("../data", "/anthro/", "ics209_conus.gpkg"), 
