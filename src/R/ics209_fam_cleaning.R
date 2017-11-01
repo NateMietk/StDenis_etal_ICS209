@@ -14,9 +14,9 @@ var_dir <- list(raw_prefix, us_prefix, ics_prefix)
 
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
-us_shp <- file.path(us_prefix, "cb_2016_us_state_20m.shp")
+us_shp <- file.path(us_prefix, "cb_2016_us_state_5m.shp")
 if (!file.exists(us_shp)) {
-  loc <- "https://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_20m.zip"
+  loc <- "https://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_5m.zip"
   dest <- paste0(us_prefix, ".zip")
   download.file(loc, dest)
   unzip(dest, exdir = us_prefix)
@@ -25,9 +25,11 @@ if (!file.exists(us_shp)) {
 }
 
 usa_shp <- st_read(dsn = us_prefix,
-                   layer = "cb_2016_us_state_20m", quiet= TRUE) %>%
+                   layer = "cb_2016_us_state_5m", quiet= TRUE) %>%
   st_transform("+proj=longlat +datum=WGS84") %>%  # e.g. US National Atlas Equal Area
-  #filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico"))) %>%
+  filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico",
+                       "Commonwealth of the Northern Mariana Islands", "United States Virgin Islands",
+                       "American Samoa", "Guam"))) %>%
   mutate(group = 1)
 
 # Clean ICS-209 from 2001-2013 -----------------------------
@@ -37,6 +39,7 @@ fam_rep <- fread("data/ics209/input_tbls/famweb/ics209_2001_2013_wfonlyv3.csv") 
   mutate_all(funs(replace(., is.na(.), 0))) 
 
 est_lookup <- fread("data/ics209/input_tbls/famweb/clean_estimated_costs.csv") 
+latlong <- fread("data/ics209/input_tbls/latlong/ics209Incidents-cleaned_ll.csv")
 
 names(fam_rep) %<>% tolower 
 
@@ -57,15 +60,16 @@ fam <- fam_rep %>%
          smonth = month(sdate),
          sday = day(sdate),
          syear = year(sdate),
-         report_length =rdoy-sdoy,
          state = un_ustate,
          area_ha = ifelse(area_measurement == "SQ MILES", area*258.99903998855,
                           area*0.404686),
          area_km2 = area_ha*0.01,
-         est_final_costs = clean_estimated_costs(incident_unique_id, est_final_costs),
-         costs_to_date_c = clean_costs_to_date(incident_unique_id, costs_to_date),
+         est_final_costs = dollarToNumber_vectorised(clean_estimated_costs(incident_unique_id, est_final_costs)),
+         costs_to_date_c = dollarToNumber_vectorised(clean_costs_to_date(incident_unique_id, costs_to_date)),
          cause_binary = ifelse(cause == "H", "2", 
-                               ifelse(cause =="L", "1", "0"))) %>%
+                               ifelse(cause == "O", "2", 
+                                      ifelse(cause =="L", "1", "0"))),
+         confi = "H") %>%
   left_join(est_lookup, by = c("incident_unique_id", "est_final_costs")) %>%
   mutate(est_final_costs_c = ifelse(is.na(est_final_costs_c), est_final_costs, est_final_costs_c),
          costs = ifelse(est_final_costs_c == 0 & costs_to_date_c > 1, costs_to_date_c,
@@ -75,8 +79,6 @@ fam_clean <- fam %>%
   group_by(incident_unique_id, eyear, state) %>%
   summarise(incidentnum = last(incidentnum),
             incidentname = last(incidentname),
-            lat = max(lat),
-            long = min(long),
             emonth = max(rmonth),
             eday = max(rday),
             edoy = max(rdoy),
@@ -96,6 +98,12 @@ fam_clean <- fam %>%
             max.agency.support = max(imsr_num_agencies),
             cause = max(cause_binary),
             cause = ifelse(cause == "2", "Human", 
-                           ifelse(cause =="1", "Lightning", "Unk")))
+                           ifelse(cause =="1", "Lightning", "Unk")),
+            confi = last(confi)) %>%
+  left_join(., latlong, by = "incident_unique_id") %>%
+  mutate(confidence = ifelse(is.na(confidence), confi, confidence),
+         lat = ifelse(is.na(lat_c), lat, lat_c),
+         long = ifelse(is.na(long_c), long, long_c)) %>%
+  select(-lat_c, -long_c, -confi)
 
 write_csv(fam_clean, path = "data/ics209/output_tbls/ics209_conus.csv")

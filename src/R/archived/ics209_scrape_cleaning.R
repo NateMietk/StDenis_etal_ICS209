@@ -12,8 +12,7 @@ SIT_rep <- rbindlist(mylist, fill = TRUE) %>%
   select(-othr)
 
 SIT_ll <- fread("data/ics209/input_tbls/latlong/ics209Incidents-cleaned_ll.csv") %>%
-  mutate(syear = Year) %>%
-  select(-IncidentName)
+  mutate_all(funs(replace(., is.na(.), 0)))
 
 names(SIT_rep) %<>% tolower 
 names(SIT_ll) %<>% tolower 
