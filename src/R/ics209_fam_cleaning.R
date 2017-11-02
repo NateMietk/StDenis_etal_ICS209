@@ -1,18 +1,24 @@
+source("src/R/functions/helper_functions.R")
 
-x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", 
-       "assertthat", "purrr", "httr", "rvest", "lubridate")
+x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf",
+       "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel")
 lapply(x, library, character.only = TRUE, verbose = FALSE)
 
 ## Download and process State data
 # Creat directories for state data
-raw_prefix <- file.path("data", "raw")
-us_prefix <- file.path(raw_prefix, "cb_2016_us_state_20m")
-ics_prefix <- file.path("data", "ics209")
+prefix <- ifelse(Sys.getenv("LOGNAME") == "NateM", file.path("data"),
+                 ifelse(Sys.getenv("LOGNAME") == "nami1114", file.path("data"),
+                        file.path("../data")))
+raw_prefix <- file.path(prefix, "raw")
+us_prefix <- file.path(raw_prefix, "cb_2016_us_state_5m")
+ics_prefix <- file.path(prefix, "ics209")
 
 # Check if directory exists for all variable aggregate outputs, if not then create
-var_dir <- list(raw_prefix, us_prefix, ics_prefix)
+var_dir <- list(prefix, raw_prefix, us_prefix, ics_prefix)
 
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
+
+ncores <- detectCores()
 
 us_shp <- file.path(us_prefix, "cb_2016_us_state_5m.shp")
 if (!file.exists(us_shp)) {
@@ -26,22 +32,20 @@ if (!file.exists(us_shp)) {
 
 usa_shp <- st_read(dsn = us_prefix,
                    layer = "cb_2016_us_state_5m", quiet= TRUE) %>%
-  st_transform("+proj=longlat +datum=WGS84") %>%  # e.g. US National Atlas Equal Area
+  st_transform(crs = "+proj=longlat +datum=WGS84") %>%  # e.g. US National Atlas Equal Area
   filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico",
                        "Commonwealth of the Northern Mariana Islands", "United States Virgin Islands",
-                       "American Samoa", "Guam"))) %>%
-  mutate(group = 1)
+                       "American Samoa", "Guam"))) 
 
 # Clean ICS-209 from 2001-2013 -----------------------------
-source("src/R/helper_functions.R")
 
 fam_rep <- fread("data/ics209/input_tbls/famweb/ics209_2001_2013_wfonlyv3.csv") %>%
-  mutate_all(funs(replace(., is.na(.), 0))) 
+  mutate_all(funs(replace(., is.na(.), 0)))
 
-est_lookup <- fread("data/ics209/input_tbls/famweb/clean_estimated_costs.csv") 
+est_lookup <- fread("data/ics209/input_tbls/famweb/clean_estimated_costs.csv")
 latlong <- fread("data/ics209/input_tbls/latlong/ics209Incidents-cleaned_ll.csv")
 
-names(fam_rep) %<>% tolower 
+names(fam_rep) %<>% tolower
 
 fam <- fam_rep %>% 
   filter(!(un_ustate %in% c("AK", "HI", "PR"))) %>%
@@ -79,6 +83,8 @@ fam_clean <- fam %>%
   group_by(incident_unique_id, eyear, state) %>%
   summarise(incidentnum = last(incidentnum),
             incidentname = last(incidentname),
+            lat = max(lat),
+            long = min(long),
             emonth = max(rmonth),
             eday = max(rday),
             edoy = max(rdoy),
@@ -91,6 +97,10 @@ fam_clean <- fam %>%
             fatalities = max(fatalities),
             home.destroyed = max(destroyed_res),
             home.threat = max(threatened_res),
+            home.damage = max(damaged_res),
+            comm.destroyed = max(destroyed_comm),
+            comm.threat = max(threatened_comm),
+            comm.damage = max(damaged_comm),
             max.pers = max(imsr_total_personnel),
             max.aerial = max(imsr_num_aerial),
             tot.pers = sum(imsr_total_personnel),
