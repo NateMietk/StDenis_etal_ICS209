@@ -10,12 +10,12 @@ st_par <- function(sf_df, sf_func, n_cores, ...){
     mclapply(function(x) sf_func(x, ...), mc.cores = n_cores)
   
   # Combine results back together. Method of combining depends on the output from the function.
-   # if (class(split_results[[1]]) == 'list' ){
-   #   result <- do.call("c", split_results)
-   #   names(result) <- NULL
-   # } else {
+    if (class(split_results[[1]]) == 'list' ){
+      result <- do.call(c, split_results)
+      names(result) <- NULL
+    } else {
      result <- do.call(rbind, split_results)
-  # }
+   }
   
   # Return result
   return(result)

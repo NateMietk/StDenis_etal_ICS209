@@ -124,7 +124,7 @@ names(ecoreg1) %<>% tolower
 names(ecoreg2) %<>% tolower
 names(ecoreg3) %<>% tolower
 
-bounds <- st_par(usa_shp, st_intersection, n_cores = ncores, y = ecoreg1) %>%
+state_ecoregion <- st_par(usa_shp, st_intersection, n_cores = ncores, y = ecoreg1) %>%
   st_par(., st_intersection, n_cores = ncores, y = ecoreg2) %>%
   st_par(., st_intersection, n_cores = ncores, y = ecoreg3) 
   
