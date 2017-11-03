@@ -1,41 +1,4 @@
-source("src/R/functions/helper_functions.R")
-
-x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf",
-       "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel")
-lapply(x, library, character.only = TRUE, verbose = FALSE)
-
-## Download and process State data
-# Creat directories for state data
-prefix <- ifelse(Sys.getenv("LOGNAME") == "NateM", file.path("data"),
-                 ifelse(Sys.getenv("LOGNAME") == "nami1114", file.path("data"),
-                        file.path("../data")))
-raw_prefix <- file.path(prefix, "raw")
-us_prefix <- file.path(raw_prefix, "cb_2016_us_state_5m")
-ics_prefix <- file.path(prefix, "ics209")
-
-# Check if directory exists for all variable aggregate outputs, if not then create
-var_dir <- list(prefix, raw_prefix, us_prefix, ics_prefix)
-
-lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
-
-ncores <- detectCores()
-
-us_shp <- file.path(us_prefix, "cb_2016_us_state_5m.shp")
-if (!file.exists(us_shp)) {
-  loc <- "https://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_5m.zip"
-  dest <- paste0(us_prefix, ".zip")
-  download.file(loc, dest)
-  unzip(dest, exdir = us_prefix)
-  unlink(dest)
-  assert_that(file.exists(us_shp))
-}
-
-usa_shp <- st_read(dsn = us_prefix,
-                   layer = "cb_2016_us_state_5m", quiet= TRUE) %>%
-  st_transform(crs = "+proj=longlat +datum=WGS84") %>%  # e.g. US National Atlas Equal Area
-  filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico",
-                       "Commonwealth of the Northern Mariana Islands", "United States Virgin Islands",
-                       "American Samoa", "Guam"))) 
+source("src/R/get_clean_data.R")
 
 # Clean ICS-209 from 2001-2013 -----------------------------
 
@@ -112,8 +75,11 @@ fam_clean <- fam %>%
             confi = last(confi)) %>%
   left_join(., latlong, by = "incident_unique_id") %>%
   mutate(confidence = ifelse(is.na(confidence), confi, confidence),
-         lat = ifelse(is.na(lat_c), lat, lat_c),
-         long = ifelse(is.na(long_c), long, long_c)) %>%
-  select(-lat_c, -long_c, -confi)
+         lat = ifelse(is.na(lat_c), lat.x, lat_c),
+         long = ifelse(is.na(long_c), long.x, long_c),
+         syear = syear.x,
+         cause = cause.x) %>%
+  select(-lat_c, -long_c, -confi, -syear.y, -lat.y, -cause.x, -cause.y,
+         -long.y, -lat.x, -long.x, -syear.x, -syear.y)
 
 write_csv(fam_clean, path = "data/ics209/output_tbls/ics209_conus.csv")
