@@ -14,11 +14,11 @@ plot(conus_209[1], pch = 20)
 
 erratics <- st_par(fam_clean_pt, st_difference, n_cores = ncores, y = st_union(usa_shp))
 
-write_csv(conus_209, path = "data/ics209/output_tbls/ics209_conus.csv")
-write_csv(erratics, path = "data/ics209/output_tbls/ics209_erratics.csv")
+fwrite(conus_209, "data/ics209/output_tbls/ics209_conus.csv", sep = ",")
+fwrite(erratics,  "data/ics209/output_tbls/ics209_erratics.csv", sep = ",")
 
 # Write out the shapefile.
-st_write(conus_209, file.path(prefix, "anthro", "ics209_conus.gpkg"),
+st_write(conus_209, "data/ics209/spatial/ics209_conus.gpkg",
          driver = "GPKG",
          update=TRUE)
 

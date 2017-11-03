@@ -82,4 +82,3 @@ fam_clean <- fam %>%
   select(-lat_c, -long_c, -confi, -syear.y, -lat.y, -cause.x, -cause.y,
          -long.y, -lat.x, -long.x, -syear.x, -syear.y)
 
-write_csv(fam_clean, path = "data/ics209/output_tbls/ics209_conus.csv")
