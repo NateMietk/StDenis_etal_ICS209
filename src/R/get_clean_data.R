@@ -13,10 +13,11 @@ prefix <- ifelse(Sys.getenv("LOGNAME") == "NateM", file.path("data"),
 raw_prefix <- file.path(prefix, "raw")
 us_prefix <- file.path(raw_prefix, "cb_2016_us_state_5m")
 ics_prefix <- file.path(prefix, "ics209")
+anthro_prefix <- file.path(prefix, "anthro")
 ecoregion_prefix <- file.path(prefix, "ecoreg")
 
 # Check if directory exists for all variable aggregate outputs, if not then create
-var_dir <- list(prefix, raw_prefix, us_prefix, ics_prefix, ecoregion_prefix)
+var_dir <- list(prefix, raw_prefix, anthro_prefix, us_prefix, ics_prefix, ecoregion_prefix)
 
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
