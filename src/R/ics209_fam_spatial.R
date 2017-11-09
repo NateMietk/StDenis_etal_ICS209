@@ -9,7 +9,7 @@ fam_clean_pt <- st_par(fam_clean, st_as_sf, n_cores = ncores,
 # Clip the ICS-209 data to the CONUS and remove unknown cause
 conus_209 <- st_par(fam_clean_pt, st_intersection, n_cores = ncores, y = st_union(usa_shp)) %>%
   dplyr::select(-state) %>%
-  st_par(., st_intersection, n_cores = ncores, y = bounds)
+  st_par(., st_intersection, n_cores = ncores, y = state_ecoregion)
 plot(conus_209[1], pch = 20)
 
 erratics <- st_par(fam_clean_pt, st_difference, n_cores = ncores, y = st_union(usa_shp))
@@ -18,17 +18,18 @@ fwrite(conus_209, "data/ics209/output_tbls/ics209_conus.csv", sep = ",")
 fwrite(erratics,  "data/ics209/output_tbls/ics209_erratics.csv", sep = ",")
 
 # Write out the shapefile.
-st_write(conus_209, "data/ics209/spatial/ics209_conus.gpkg",
+st_write(conus_209, file.path(prefix, "anthro", "ics209_conus.gpkg"),
          driver = "GPKG",
          update=TRUE)
 
-wui_shp <- st_read(dsn = file.path(prefix, "anthro", "wui_state_eco.gpkg"),
-                   layer = "wui_state_eco", quiet= TRUE) %>%
-  st_transform("+proj=longlat +datum=WGS84")
+wui_shp <- st_read(dsn = file.path(prefix, "anthro", "wui_conus.gpkg"),
+                   layer = "wui_conus", quiet= TRUE) %>%
+  st_transform(proj_ea)
 
 wui_209 <- st_intersection(conus_209, wui_shp)
+names(wui_209) %<>% tolower
 
 # Write out the shapefile.
-st_write(wui_209, file.path(prefix, "anthro", "ics209_wui_conus.gpkg"),
+st_write(wui_209, "data/ics209/spatial/ics209_wui_conus.gpkg",
          driver = "GPKG",
          update=TRUE)
