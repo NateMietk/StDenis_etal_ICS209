@@ -21,7 +21,7 @@ var_dir <- list(prefix, raw_prefix, anthro_prefix, us_prefix, ics_prefix, ecoreg
 
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
-ncores <- 2
+ncores <- 10
 
 proj_ea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 
 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
@@ -127,4 +127,4 @@ names(ecoreg3) %<>% tolower
 state_ecoregion <- st_par(usa_shp, st_intersection, n_cores = ncores, y = ecoreg1) %>%
   st_par(., st_intersection, n_cores = ncores, y = ecoreg2) %>%
   st_par(., st_intersection, n_cores = ncores, y = ecoreg3) 
-  
+

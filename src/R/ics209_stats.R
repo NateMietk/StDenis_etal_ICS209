@@ -1,12 +1,9 @@
 
 library(agricolae)
 library(vegan)
-
-wui_209 <- wui_209 %>%
-  mutate(ign_wui <- paste0(Class, "_", cause))
-
-krus_df <- fam_clean %>%
+krus_df <- wuw_eco_ICS %>%
   ungroup() %>%
+  mutate(ign_wui <- paste0(class, "_", cause)) %>%
   select(edoy, costs, fatalities, home.destroyed, home.threat, 
          max.pers, max.aerial, tot.pers, tot.aerial, max.agency.support, cause)
 
