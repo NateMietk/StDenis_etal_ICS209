@@ -8,7 +8,16 @@ convert_class_to_num <- function(x){
 }
 
 
-
+clean_class <- function(x, y) {
+  if_else(x %in% c("CA-BTU-007660|2008|1","MT-CES-000122|2012|1","WA-OWF-000346|2010|1","CO-PSF-000429|2013|1","CA-BDU-006570|2006|1",
+                   "CA-RRU-080142|2012|1","CA-SHF-1057|2008|1","WA-OWF-000583|2012|1","CA-SRF-1120|2008|1", "CA-HUU-003384|2008|1",
+                   "CA-LNF-3923|2009|1","MT-MCD-000035|2012|1","CA-LNU-006610|2003|1","CA-TGU-4245|2008|1","WA-WEF-709|2001|1",
+                   "CA-MMU-008107|2008|1"), "VLD",
+          if_else(x %in% c("OR-UPF-0000034|2003|1","CA-BDF-5749|2006|1","NV-HTF-3364|2004|1","OR-71S-044|2002|1","AZ-KNF-00872|2009|1",
+                           "CA-RRU-062519|2005|1","AZ-CNF-074|2007|1","NV-HTF-1111|2006|1","CA-MVU-1024|2002|1","ID-SCF-000003|2005|1",
+                           "OR-SIF-003|2002|1"), "Wildlands", 
+                  y))
+}
 
 dollarToNumber_vectorised <- function(vector) {
   # Want the vector as character rather than factor while
@@ -356,10 +365,8 @@ classify_fire_size_cl <-  function(x) {
   #   - x: vector of fire sizes
   # output:
   #   - y: vector (same length) of classified fire sizes ----- Km2
-  ifelse(x < 0.4, "Very Small",
-         ifelse(x >= 0.4 & x < 4, "Small",
-                ifelse(x >= 4 & x < 40, "Medium",
-                       "Large")))
+  ifelse(x < 4, "Small",
+         ifelse(x >= 4 & x < 500, "Large", "Very Large"))
 }
 
 classify_wuiburned <-  function(x) {

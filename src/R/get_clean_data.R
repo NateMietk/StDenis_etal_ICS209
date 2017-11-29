@@ -1,7 +1,7 @@
 source("src/R/functions/helper_functions.R")
 source("src/R/functions/st_par.R")
 
-x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf",
+x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra",
        "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel")
 lapply(x, library, character.only = TRUE, verbose = FALSE)
 
