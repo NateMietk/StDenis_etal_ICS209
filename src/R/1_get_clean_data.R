@@ -67,7 +67,7 @@ states <- st_read(dsn = us_shp, quiet= TRUE) %>%
          state.abv = STUSPS,
          state = NAME,
          state_km2 = as.numeric(st_area(geometry))/1000000) %>%
-  select(state.id, state.abv, state, state_km2) 
+  dplyr::select(state.id, state.abv, state, state_km2) 
 
 # Import USA counties
 counties <- st_read(dsn = counties_shp, quiet= TRUE) %>%
