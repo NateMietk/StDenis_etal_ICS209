@@ -2,7 +2,7 @@ source("src/R/functions/helper_functions.R")
 source("src/R/functions/st_par.R")
 
 x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster",
-       "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "mblm")
+       "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "mblm", "broom")
 lapply(x, library, character.only = TRUE, verbose = FALSE)
 
 ncores <- 3
