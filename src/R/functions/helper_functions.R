@@ -19,7 +19,7 @@ clean_class <- function(x, y) {
                   y))
 }
 
-dollarToNumber_vectorised <- function(vector) {
+remove_dollar <- function(vector) {
   # Want the vector as character rather than factor while
   # we're doing text processing operations
   vector <- as.character(vector)

@@ -5,3 +5,16 @@
 
 /data/raw/
 data/raw
+
+.rstudio
+archive
+.dropbox
+.DS_Store
+Icon
+
+fcnt_costs_peryear.csv
+
+data/ics_209/output_tbls
+data/ics_209/raw
+data/ics_209/spatial
+data/ics_209/unpacked

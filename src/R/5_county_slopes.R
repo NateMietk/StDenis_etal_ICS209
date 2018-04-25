@@ -1,4 +1,4 @@
-library(lme4)
+
 
 wui_209 <- st_read("https://s3-us-west-2.amazonaws.com/earthlab-natem/data/anthro/ics209/ics209_wui_conus.gpkg") %>%
   mutate(
@@ -72,7 +72,6 @@ tot_aerial_model <- glmer(tot.aerial ~ cyear + (1 + cyear|county.ns) + (1|obs_id
 max_supp_model <- glmer(max.agency.support ~ cyear + (1 + cyear|county.ns) + (1|obs_id), 
                         data = damage_df, family = poisson)
 
-
 # Extract county-level slopes from each model -----------------------------
 # first, get names of all of the model fits
 model_fits <- grep('_model$', x = ls(), value = TRUE)
@@ -82,7 +81,7 @@ names(model_fits) <- model_fits
 get_county_trend <- function(fit) {
   # this is the overall slope for (scaled) time + a county adjustment
   assert_that(class(fit) == 'glmerMod')
-  slope <- fixef(fit)['cyear'] + ranef(fit)[['county.ns']]$cyear
+  slope <- fixef(tot_aerial_model)['cyear'] + ranef(tot_aerial_model)[['county.ns']]$cyear
   
   # scale by sd to get the expected increase on a log-scale per year
   slope / sd(damage_df$eyear)
