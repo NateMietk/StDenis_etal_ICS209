@@ -2,24 +2,26 @@ source("src/R/functions/helper_functions.R")
 source("src/R/functions/st_par.R")
 source("src/R/functions/st_parallel.R")
 
-x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", "lme4",
+x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", "lme4", 'lubridate',
        "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom")
 lapply(x, library, character.only = TRUE, verbose = FALSE)
-
-ncores <- 2
 
 ## Download and process State data
 # Creat directories for state data
 prefix <- "data"
 raw_prefix <- file.path(prefix, "raw")
 us_prefix <- file.path(raw_prefix, "cb_2016_us_state_5m")
+bounds_dir <- file.path(prefix, 'bounds')
 ics_prefix <- file.path(prefix, "ics_209")
+ics_inputs <- file.path(ics_prefix, "input_tbls")
+ics_latlong <- file.path(ics_inputs, "latlong")
 ics_spatial <- file.path(ics_prefix, "spatial")
 ecoregion_prefix <- file.path(raw_prefix, "ecoreg")
 counties_prefix <- file.path(raw_prefix, 'cb_2016_us_county_20m')
 
 # Check if directory exists for all variable aggregate outputs, if not then create
-var_dir <- list(prefix, raw_prefix, us_prefix, ics_prefix, ics_spatial, ecoregion_prefix, counties_prefix)
+var_dir <- list(prefix, raw_prefix, us_prefix, ics_prefix, ics_spatial, ecoregion_prefix, 
+                counties_prefix, ics_inputs, ics_latlong, bounds_dir)
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
 proj_ea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 
@@ -70,47 +72,12 @@ states <- st_read(dsn = us_shp, quiet= TRUE) %>%
          state_km2 = as.numeric(st_area(geometry))/1000000) %>%
   dplyr::select(state.id, state.abv, state, state_km2) 
 
-# Import USA counties
-# counties <- st_read(dsn = counties_shp, quiet= TRUE) %>%
-#   st_par(., st_transform, n_cores = ncores, crs = st_crs(states)) %>%  
-#   st_intersection(., st_union(states)) %>%
-#   mutate(county.fp = COUNTYFP,
-#          county.ns = COUNTYNS,
-#          county_km2 = as.numeric(st_area(geometry))/1000000) %>%
-#   dplyr::select(county.fp, county.ns, county_km2) %>%
-#   st_buffer(0) %>%
-#   st_cast(., "POLYGON")
-
-# states_counties <- counties %>%
-#   st_join(., states, join = st_intersects) %>%
-#   select(state.id, state.abv, state, county.fp, county.ns, state_km2, county_km2) 
-# 
-# # Import the Level 3 Ecoregions
-# ecoregion <- st_read(dsn = ecoregion_shp, quiet= TRUE) %>%
-#   st_simplify(., preserveTopology = TRUE, dTolerance = 1000) %>%
-#   st_buffer(0) %>%
-#   st_par(., st_transform, n_cores = ncores, crs = st_crs(counties)) %>% 
-#   st_intersection(., st_union(states)) %>%
-#   mutate(ecoreg1.code = NA_L1CODE,
-#          ecoreg1.name = NA_L1NAME,
-#          ecoreg2.code = NA_L2CODE,
-#          ecoreg2.name = NA_L2NAME,
-#          ecoreg3.code = US_L3CODE,
-#          ecoreg3.name = US_L3NAME,
-#          ecoreg3_km2 = as.numeric(st_area(geometry))/1000000) %>%
-#   select(ecoreg1.code, ecoreg1.name, ecoreg2.code, 
-#          ecoreg2.name, ecoreg3.code, ecoreg3.name, ecoreg3_km2)  
-# 
-# state_ecoregion <- st_par(counties, st_join, n_cores = ncores, y = ecoregion, join = st_intersects)
-
-# 50k Fishnet
-# fishnet_50k <- st_make_grid(usa_shp, cellsize = 50000, what = 'polygons') %>%
-#   st_sf('geometry' = ., data.frame('fishid50k' = 1:length(.))) %>%
-#   st_intersection(., st_union(states)) 
-
-hex_points <- spsample(as(states, 'Spatial'), type = "hexagonal", cellsize = 50000)
-hex_grid <- HexPoints2SpatialPolygons(hex_points, dx = 50000)
-hexnet_50k <- st_as_sf(hex_grid) %>%
-  mutate(hexid50k = row_number()) %>%
-  st_intersection(., st_union(states))
-
+if (!file.exists(file.path(bounds_dir, 'hex_grid_50k.gpkg'))) {
+  hex_points <- spsample(as(states, 'Spatial'), type = "hexagonal", cellsize = 50000)
+  hex_grid <- HexPoints2SpatialPolygons(hex_points, dx = 50000)
+  hexnet_50k <- st_as_sf(hex_grid) %>%
+    mutate(hexid50k = row_number()) %>%
+    st_intersection(., st_union(states))
+} else {
+  hexnet_50k <- st_read(file.path(bounds_dir, 'hex_grid_50k.gpkg'))
+}
