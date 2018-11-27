@@ -1,7 +1,7 @@
 # Import USA states
 states <- st_read(dsn = us_shp, quiet= TRUE) %>%
   st_transform(proj_ea) %>%  # e.g. US National Atlas Equal Area
-  filter(!(NAME %in% c("Alaska", "Hawaii", "Puerto Rico",
+  filter(!(NAME %in% c("Hawaii", "Puerto Rico",
                        "Commonwealth of the Northern Mariana Islands", "United States Virgin Islands",
                        "American Samoa", "Guam"))) %>%
   rename_all(tolower) %>%
@@ -20,43 +20,37 @@ if (!exists("ecoregions_l3")){
     dplyr::select(us_l3name, na_l2name, na_l1name)
 }
 
-if (!exists("counties")){
-  counties <- st_read(file.path(counties_prefix, "cb_2016_us_county_20m.shp")) %>%
-    sf::st_transform(st_crs(states)) %>%
-    rename_all(tolower) %>%
-    dplyr::select(countyfp)
-}
-
 if (!file.exists(file.path(bounds_dir, 'hex_grid_50k.gpkg'))) {
-  hex_points <- spsample(as(states, 'Spatial'), type = "hexagonal", cellsize = 50000)
-  hex_grid <- HexPoints2SpatialPolygons(hex_points, dx = 50000)
-  hexnet_50k <- st_as_sf(hex_grid) %>%
-    mutate(hexid50k = row_number()) %>%
-    st_intersection(., st_union(states))
+  
+  hexnet_50k <- st_sf(geom=st_make_grid(states, cellsize = 50000, square = FALSE), crs=st_crs(states)) %>%
+    st_cast('MULTIPOLYGON') %>%
+    mutate(hexid50k = row_number())
+  
+  st_write(hexnet_50k, file.path(bounds_dir, 'hex_grid_50k.gpkg'), delete_layer = TRUE)
+  
 } else {
   hexnet_50k <- st_read(file.path(bounds_dir, 'hex_grid_50k.gpkg'))
 }
 
 # Import ICS-209 from 1999-2014 -----------------------------
-ics_209 <- st_read(file.path(ics_inputs, "ics209_allsitreps1999to2013.csv")) %>%
+ics_209 <- fread(file.path(ics_inputs, "ics209_allsitreps1999to2014.csv")) %>%
   as_tibble() %>%
-  mutate(LONGITUDE = as.numeric(POO_LONGITUDE),
-         LATITUDE = as.numeric(POO_LATITUDE))
+  mutate(POO_LONGITUDE = as.numeric(POO_LONGITUDE),
+         POO_LATITUDE = as.numeric(POO_LATITUDE))
 
 # Clip the ICS-209 data to the CONUS and remove unknown cause
 if(!file.exists(file.path(ics_spatial, "ics209_conus.gpkg"))) {
   # Make the cleaned ICS-209 data spatial
-  ics_209_pt <- st_par(ics_209, st_as_sf, n_cores = 1,
-                         coords = c("LONGITUDE", "LATITUDE"),
-                         crs = "+init=epsg:2163") %>%
-    st_par(., st_transform, n_cores = 1, crs = st_crs(states))
+  ics_209_pt <- st_as_sf(ics_209, coords = c("POO_LONGITUDE", "POO_LATITUDE"),
+                         crs = "+init=epsg:4326") %>%
+    st_transform(crs = st_crs(states))
   
-  conus_209 <- st_par(fam_clean_pt, st_intersection, n_cores = 1, y = st_union(states)) %>%
-    st_par(., st_intersection, n_cores = 1, y = ecoregions_l3) %>%
-    st_par(., st_intersection, n_cores = 1, y = counties) %>%
-    st_par(., st_intersection, n_cores = 1, y = hexnet_50k)
+  conus_209 <- ics_209_pt %>%
+    st_intersection(., states) %>%
+    st_join(., ecoregions_l3) %>%
+    st_join(., hexnet_50k)
   
-  conus_209 <- st_write(file.path(ics_spatial, "ics209_conus.gpkg"), delete_layer=TRUE)
+  st_write(conus_209, file.path(ics_spatial, "ics209_conus.gpkg"), delete_layer=TRUE)
 
 } else {
   conus_209 <- st_read(file.path(ics_spatial, "ics209_conus.gpkg"))

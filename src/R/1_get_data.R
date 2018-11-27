@@ -20,7 +20,7 @@ counties_prefix <- file.path(raw_prefix, 'cb_2016_us_county_20m')
 
 # Check if directory exists for all variable aggregate outputs, if not then create
 var_dir <- list(prefix, raw_prefix, us_prefix, ics_prefix, ics_spatial, ecoregion_prefix, 
-                counties_prefix, ics_inputs, ics_latlong, bounds_dir)
+                counties_prefix, ics_inputs, bounds_dir)
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
 proj_ea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 
@@ -46,15 +46,4 @@ if (!file.exists(ecoregion_shp)) {
   unzip(dest, exdir = ecoregion_prefix)
   unlink(dest)
   assert_that(file.exists(ecoregion_shp))
-}
-
-# Download the US counties
-counties_shp <- file.path(counties_prefix, "cb_2016_us_county_20m.shp")
-if (!file.exists(counties_shp)) {
-  loc <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
-  dest <- paste0(counties_prefix, ".zip")
-  download.file(loc, dest)
-  unzip(dest, exdir = counties_prefix)
-  unlink(dest)
-  assert_that(file.exists(counties_shp))
 }
