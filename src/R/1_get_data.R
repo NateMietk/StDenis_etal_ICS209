@@ -1,10 +1,12 @@
-source("src/R/functions/helper_functions.R")
-source("src/R/functions/st_par.R")
-source("src/R/functions/st_parallel.R")
 
 x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", "lme4",
        'lubridate', "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom")
 lapply(x, library, character.only = TRUE, verbose = FALSE)
+
+# Load all external custom functions
+file_sources <- list.files(file.path('src', 'functions'), pattern="*.R", 
+                           full.names=TRUE, ignore.case=TRUE)
+invisible(sapply(file_sources, source, .GlobalEnv))
 
 ## Download and process State data
 # Creat directories for state data
