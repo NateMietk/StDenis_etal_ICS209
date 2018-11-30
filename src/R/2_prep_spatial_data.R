@@ -32,14 +32,14 @@ if (!file.exists(file.path(bounds_dir, 'hex_grid_50k.gpkg'))) {
   hexnet_50k <- st_read(file.path(bounds_dir, 'hex_grid_50k.gpkg'))
 }
 
-# Import ICS-209 from 1999-2014 -----------------------------
-ics_209 <- fread(file.path(ics_inputs, "ics209_allsitreps1999to2014.csv")) %>%
-  as_tibble() %>%
-  mutate(POO_LONGITUDE = as.numeric(POO_LONGITUDE),
-         POO_LATITUDE = as.numeric(POO_LATITUDE))
-
 # Clip the ICS-209 data to the CONUS and remove unknown cause
 if(!file.exists(file.path(ics_spatial, "ics209_conus.gpkg"))) {
+  # Import ICS-209 from 1999-2014
+  ics_209 <- fread(file.path(ics_inputs, "ics209_allsitreps1999to2014.csv")) %>%
+    as_tibble() %>%
+    mutate(POO_LONGITUDE = as.numeric(POO_LONGITUDE),
+           POO_LATITUDE = as.numeric(POO_LATITUDE))
+  
   # Make the cleaned ICS-209 data spatial
   ics_209_pt <- st_as_sf(ics_209, coords = c("POO_LONGITUDE", "POO_LATITUDE"),
                          crs = "+init=epsg:4326") %>%
