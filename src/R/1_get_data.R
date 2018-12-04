@@ -1,6 +1,6 @@
 
 x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", "lme4",
-       'lubridate', "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom")
+       'lubridate', "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom", 'openxlsx')
 lapply(x, library, character.only = TRUE, verbose = FALSE)
 
 # Load all external custom functions
