@@ -31,8 +31,9 @@ p1 <- ggplot() +
 p2 <- make_map(figure_S1_df, 'burned_area_acres', '(B) Burned Area', 'log(Burned Area)', ak_mask) 
 p3 <- make_map(figure_S1_df, 'total_personnel', '(C) Total Personnel', 'log(Total Personnel)', ak_mask)
 p4 <- make_map(figure_S1_df, 'costs', '(D) Costs', 'log(Costs)', ak_mask)
-p5 <- make_map(figure_S1_df, 'structures_destroyed', '(E) Homes Destroyed', 'log(Homes Destroyed)', ak_mask)
-p6 <- make_map(figure_S1_df, 'total_threatened', '(F) Homes Threatened', 'log(Homes Threatened)', ak_mask)
+p5 <- make_map(figure_S1_df, 'total_threatened', '(F) Homes Threatened', 'log(Homes Threatened)', ak_mask)
+p6 <- make_map(figure_S1_df, 'structures_destroyed', '(E) Homes Destroyed', 'log(Homes Destroyed)', ak_mask)
+
 
 g <- arrangeGrob(p1, p2, p3, p4, p5, p6, ncol = 2)
 
