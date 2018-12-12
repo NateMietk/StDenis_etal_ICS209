@@ -1,5 +1,5 @@
 
-x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", "lme4",
+x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", "lme4", 'RColorBrewer',
        'lubridate', "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom", 'openxlsx')
 lapply(x, library, character.only = TRUE, verbose = FALSE)
 
@@ -11,8 +11,11 @@ invisible(sapply(file_sources, source, .GlobalEnv))
 ## Download and process State data
 # Creat directories for state data
 prefix <- "data"
+fire_dir <- file.path(prefix, 'fire')
 raw_prefix <- file.path(prefix, "raw")
 us_prefix <- file.path(raw_prefix, "cb_2016_us_state_5m")
+gacc_prefix <- file.path(raw_prefix, "gacc")
+raw_dir_mtbs <- file.path(raw_prefix, "mtbs") 
 bounds_dir <- file.path(prefix, 'bounds')
 ics_prefix <- file.path(prefix, "ics_209")
 ics_inputs <- file.path(ics_prefix, "input_tbls")
@@ -22,11 +25,10 @@ counties_prefix <- file.path(raw_prefix, 'cb_2016_us_county_20m')
 
 # Check if directory exists for all variable aggregate outputs, if not then create
 var_dir <- list(prefix, raw_prefix, us_prefix, ics_prefix, ics_spatial, ecoregion_prefix, 
-                counties_prefix, ics_inputs, bounds_dir)
+                counties_prefix, ics_inputs, bounds_dir, raw_dir_mtbs, fire_dir, gacc_prefix)
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
-proj_ea <- "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 
-+x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
+proj_ea <- "+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs "
 
 # Download the USA states
 us_shp <- file.path(us_prefix, "cb_2016_us_state_5m.shp")
@@ -49,3 +51,4 @@ if (!file.exists(ecoregion_shp)) {
   unlink(dest)
   assert_that(file.exists(ecoregion_shp))
 }
+
