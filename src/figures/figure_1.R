@@ -3,7 +3,7 @@ figure_1_df <- conus_209 %>%
   group_by(hexid50k) %>%
   summarise(n = n()) %>%
   as.data.frame() %>%
-  dplyr::select(-geom) %>%
+  dplyr::select(-geometry) %>%
   left_join(hexnet_50k, ., by = 'hexid50k') %>%
   na.omit(n)
 
@@ -24,5 +24,5 @@ p1 <- ggplot() +
   guides(fill = guide_colourbar(title.position="top", title.hjust = 0.5),
          size = guide_legend(title.position="top", title.hjust = 0.5))
 
-ggsave(file = file.path('results', 'draft_figures', "Figure_1.pdf"), p1, width = 6, height = 5, 
-       dpi = 600, scale = 3, units = "cm") #saves g
+ggsave(file = file.path('results', 'draft_figures', "Figure_1.jpg"), p1, width = 6, height = 5, 
+       dpi = 1200, scale = 3, units = "cm") #saves g
