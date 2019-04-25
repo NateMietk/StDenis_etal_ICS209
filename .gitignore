@@ -10,3 +10,7 @@ Icon*
 fcnt_costs_peryear.csv
 data/
 .local
+*.Rproj
+docs/
+fpa-fod*.csv
+results/
