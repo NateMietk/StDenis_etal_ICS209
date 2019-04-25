@@ -1,16 +1,16 @@
 figure_2_ts <- conus_209 %>%
-  mutate(year = as.Date(conus_209$DISCOVERY_DATE),
+  mutate(year = as.Date(conus_209$discovery_date),
          year = year(year)) %>%
   group_by(year) %>%
   summarise(n = n(),
-            fsr = log(max(WF_MAX_FSR, na.rm = TRUE)),
-            structures_destroyed = log(sum(STR_DESTROYED_TOTAL, na.rm = TRUE)),
-            total_personnel = log(sum(TOTAL_PERSONNEL_SUM, na.rm = TRUE)),
-            burned_area_acres = log(sum(FINAL_ACRES, na.rm = TRUE)),
-            costs = log(sum(PROJECTED_FINAL_IM_COST, na.rm = TRUE)),
-            total_threatened = log(sum(STR_THREATENED_MAX, na.rm = TRUE))) %>%
+            fsr = log(max(wf_max_fsr, na.rm = TRUE)),
+            structures_destroyed = log(sum(str_destroyed_total, na.rm = TRUE)),
+            total_personnel = log(sum(total_personnel_sum, na.rm = TRUE)),
+            burned_area_acres = log(sum(final_acres, na.rm = TRUE)),
+            costs = log(sum(projected_final_im_cost, na.rm = TRUE)),
+            total_threatened = log(sum(str_threatened_max, na.rm = TRUE))) %>%
   as.data.frame() %>%
-  dplyr::select(-geometry)
+  dplyr::select(-geom)
 
 make_ts <- function(df, var_x = 'year', var_y, lab_title, plot_title) {
   p1 <- ggplot(data = df, aes_string(x =  var_x, y = var_y)) +
