@@ -1,16 +1,23 @@
-# Import USA states
-states <- st_read(dsn = us_shp, quiet= TRUE) %>%
-  st_transform(proj_ea) %>%  # e.g. US National Atlas Equal Area
-  filter(!(NAME %in% c("Hawaii", "Puerto Rico",
-                       "Commonwealth of the Northern Mariana Islands", "United States Virgin Islands",
-                       "American Samoa", "Guam"))) %>%
-  rename_all(tolower) %>%
-  dplyr::select(stusps) 
+# USA states
+if(!exists(states)) {
+  download_data(url = "https://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_20m.zip",
+                dir = raw_dir_us,
+                layer = "cb_2016_us_state_20m") 
+  
+  states <- st_read(dsn = us_shp, quiet= TRUE) %>%
+    st_transform(proj_ea) %>%  # e.g. US National Atlas Equal Area
+    filter(!(NAME %in% c("Hawaii", "Puerto Rico",
+                         "Commonwealth of the Northern Mariana Islands", "United States Virgin Islands",
+                         "American Samoa", "Guam"))) %>%
+    rename_all(tolower) %>%
+    dplyr::select(stusps) 
+}
 
-# Import and clean by GACC
-# Annoyingly I have to sign into ArcGIS Online to download the data
-# https://hub.arcgis.com/items/72213d9266eb4aefa4403a1bf21dfd61?geometry=-266.765%2C-40.581%2C93.235%2C86.606
+# GACC
 if(!file.exists(file.path(fire_dir, 'mtbs.gpkg'))) {
+  # Annoyingly I have to sign into ArcGIS Online to download the data
+  # https://hub.arcgis.com/items/72213d9266eb4aefa4403a1bf21dfd61?geometry=-266.765%2C-40.581%2C93.235%2C86.606
+  
   gacc <- st_read(dsn = gacc_prefix, layer = 'National_GACC_2018', quiet= TRUE) %>%
     st_transform(st_crs(states)) %>%
     st_intersection(., st_union(states)) %>%
@@ -23,18 +30,16 @@ if(!file.exists(file.path(fire_dir, 'mtbs.gpkg'))) {
   gacc <- st_read(file.path(bounds_dir, 'gacc.gpkg'))
 }
 
-# Import and clean the MTBS polygons
+# MTBS polygons
 if(!file.exists(file.path(fire_dir, 'mtbs.gpkg'))) {
   
-  mtbs_shp <- file.path(raw_dir_mtbs, 'mtbs_perims_DD.shp')
+  mtbs_shp <- file.path(raw_dir_mtbs, 'mtbs_perimeter_data', 'mtbs_perims_DD.shp')
   if (!file.exists(mtbs_shp)) {
-    dest <- paste0(raw_dir_mtbs, ".zip")
-    download.file("https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/MTBS_Fire/data/composite_data/burned_area_extent_shapefile/mtbs_perimeter_data.zip", dest)
-    unzip(dest, exdir = raw_dir_mtbs)
-    unlink(dest)
-    assert_that(file.exists(mtbs_shp))
-  }
-  
+    download_data("https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/MTBS_Fire/data/composite_data/burned_area_extent_shapefile/mtbs_perimeter_data.zip",
+                  raw_dir_mtbs,
+                  'mtbs_perims_DD')
+    }
+
   mtbs <- st_read(dsn = raw_dir_mtbs, layer = 'mtbs_perims_DD', quiet= TRUE) %>%
     st_transform(st_crs(states)) %>%
     mutate(discovery_date = ymd(paste(Year, StartMonth, StartDay, sep="-")),
@@ -51,8 +56,14 @@ if(!file.exists(file.path(fire_dir, 'mtbs.gpkg'))) {
   mtbs <- st_read(file.path(fire_dir, 'mtbs.gpkg'))
 }
 
-
+# Level 3 ecoregions
 if (!exists("ecoregions_l3")){
+  if(!file.exists(file.path(ecoregion_prefix, 'us_eco_l3.shp'))) {
+    download_data("ftp://newftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3.zip",
+                  ecoregion_prefix,
+                  'us_eco_l3')
+  }
+  
   ecoregions_l3 <- st_read(file.path(ecoregion_prefix, 'us_eco_l3.shp')) %>%
     sf::st_simplify(., preserveTopology = TRUE, dTolerance = 1000)  %>%
     sf::st_transform(st_crs(states)) %>%
@@ -64,6 +75,7 @@ if (!exists("ecoregions_l3")){
     dplyr::select(us_l3name, na_l2name, na_l1name)
 }
 
+# 50k hexagon grid
 if (!file.exists(file.path(bounds_dir, 'hex_grid_50k.gpkg'))) {
   
   hexnet_50k <- st_sf(geom=st_make_grid(states, cellsize = 50000, square = FALSE), crs=st_crs(states)) %>%
@@ -76,10 +88,10 @@ if (!file.exists(file.path(bounds_dir, 'hex_grid_50k.gpkg'))) {
   hexnet_50k <- st_read(file.path(bounds_dir, 'hex_grid_50k.gpkg'))
 }
 
-# Clip the ICS-209 data to the CONUS and remove unknown cause
-if(!file.exists(file.path(ics_spatial, "ics209_conus.gpkg"))) {
+# ICS-209-PLUS-WF
+if(!file.exists(file.path(ics_spatial, "ics209-plus_incidents_1999to2014.gpkg"))) {
   # Import ICS-209 from 1999-2014
-  ics_209 <- fread(file.path(ics_inputs, "ics209_allWFincidents1999to2014.csv")) %>%
+  ics_209 <- fread(file.path(ics_inputs, "ics209-plus-wf_incidents_1999to2014.csv")) %>%
     as_tibble() %>%
     mutate(POO_LONGITUDE = ifelse(is.na(POO_LONGITUDE),0,as.numeric(POO_LONGITUDE)),
            POO_LATITUDE = ifelse(is.na(POO_LATITUDE),0,as.numeric(POO_LATITUDE)))
@@ -90,13 +102,18 @@ if(!file.exists(file.path(ics_spatial, "ics209_conus.gpkg"))) {
     st_transform(crs = st_crs(states))
   
   conus_209 <- ics_209_pt %>%
-    st_intersection(., states) %>%
+    st_join(., states) %>%
     st_join(., ecoregions_l3) %>%
     st_join(., gacc) %>%
-    st_join(., hexnet_50k)
+    st_join(., hexnet_50k) %>%
+    dplyr::select(-V1) %>%
+    rename_all(tolower) %>%
+    mutate(us_l3name = stringr::str_to_title(us_l3name),
+           na_l2name = stringr::str_to_title(na_l2name),
+           na_l1name = stringr::str_to_title(na_l1name))
   
-  st_write(conus_209, file.path(ics_spatial, "ics209_conus.gpkg"), delete_layer=TRUE)
+  st_write(conus_209, file.path(ics_spatial, "ics209-plus_incidents_1999to2014.gpkg"), delete_layer=TRUE)
 
 } else {
-  conus_209 <- st_read(file.path(ics_spatial, "ics209_conus.gpkg"))
+  conus_209 <- st_read(file.path(ics_spatial, "ics209-plus_incidents_1999to2014.gpkg"))
 }

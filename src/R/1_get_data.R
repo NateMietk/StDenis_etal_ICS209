@@ -8,47 +8,38 @@ file_sources <- list.files(file.path('src', 'functions'), pattern="*.R",
                            full.names=TRUE, ignore.case=TRUE)
 invisible(sapply(file_sources, source, .GlobalEnv))
 
-## Download and process State data
-# Creat directories for state data
-prefix <- "data"
-fire_dir <- file.path(prefix, 'fire')
-raw_prefix <- file.path(prefix, "raw")
-us_prefix <- file.path(raw_prefix, "cb_2016_us_state_5m")
-gacc_prefix <- file.path(raw_prefix, "gacc")
-raw_dir_mtbs <- file.path(raw_prefix, "mtbs") 
-bounds_dir <- file.path(prefix, 'bounds')
-ics_prefix <- file.path(prefix, "ics_209")
-ics_inputs <- file.path(ics_prefix, "input_tbls")
-ics_spatial <- file.path(ics_prefix, "spatial")
-ecoregion_prefix <- file.path(raw_prefix, "ecoreg")
-counties_prefix <- file.path(raw_prefix, 'cb_2016_us_county_20m')
-
-# Check if directory exists for all variable aggregate outputs, if not then create
-var_dir <- list(prefix, raw_prefix, us_prefix, ics_prefix, ics_spatial, ecoregion_prefix, 
-                counties_prefix, ics_inputs, bounds_dir, raw_dir_mtbs, fire_dir, gacc_prefix)
-lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
-
 proj_ea <- "+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs "
 
-# Download the USA states
-us_shp <- file.path(us_prefix, "cb_2016_us_state_5m.shp")
-if (!file.exists(us_shp)) {
-  loc <- "https://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_5m.zip"
-  dest <- paste0(us_prefix, ".zip")
-  download.file(loc, dest)
-  unzip(dest, exdir = us_prefix)
-  unlink(dest)
-  assert_that(file.exists(us_shp))
-}
+# Raw data folders
+data_dir <- "data"
+raw_dir <- file.path(data_dir, "raw")
+raw_dir_us <- file.path(raw_dir, "cb_2016_us_state_20m")
+raw_dir_gacc <- file.path(raw_dir, "gacc")
+raw_dir_mtbs <- file.path(raw_dir, "mtbs")
+raw_dir_ecoregion <- file.path(raw_dir, "ecoregions")
+raw_dir_ecoregionl4 <- file.path(raw_dir, "us_eco_l4")
 
-# Download the Level 3 Ecoregions
-ecoregion_shp <- file.path(ecoregion_prefix, "us_eco_l3.shp")
-if (!file.exists(ecoregion_shp)) {
-  loc <- "ftp://newftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3.zip"
-  dest <- paste0(ecoregion_prefix, ".zip")
-  download.file(loc, dest)
-  unzip(dest, exdir = ecoregion_prefix)
-  unlink(dest)
-  assert_that(file.exists(ecoregion_shp))
-}
+# Check if directory exists for all variable aggregate outputs, if not then create
+var_dir <- list(data_dir, raw_dir, raw_dir_ag, raw_dir_us, raw_dir_mtbs, raw_dir_gacc, raw_dir_ecoregion, raw_dir_ecoregionl4)
+lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
+
+# Input data folders
+bounds_dir <- file.path(raw_dir, 'bounds')
+ics209_dir <- file.path(raw_dir, "ics_209")
+ics209_input_dir <- file.path(ics209_dir, "input_tbls")
+ics209_output_dir <- file.path(ics209_dir, "output_tbls")
+ics209_spatial_dir <- file.path(ics209_dir, "spatial")
+ecoregion_dir <- file.path(bounds_dir, "ecoregions")
+
+# Check if directory exists for all variable aggregate outputs, if not then create
+var_dir <- list(bounds_dir, ics209_dir, ics209_input_dir, ics209_output_dir, ics209_spatial_dir, ecoregion_dir)
+lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
+
+# Figure and Table directories
+results_dir <- 'results'
+draft_figs_dir <- file.path(results_dir, 'draft_figures')
+draft_table_dir <- file.path(results_dir, 'draft_tables')
+
+var_dir <- list(results_dir, draft_figs_dir, draft_table_dir)
+lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
