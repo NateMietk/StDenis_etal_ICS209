@@ -27,7 +27,7 @@ p6 <- make_map(figure_2_df, 'structures_destroyed', '(E) Homes Destroyed', 'log(
 # grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 2)
 g <- arrangeGrob(p1, p2, p3, p4, p5, p6, ncol = 2)
 
-ggsave(file = file.path('results', 'draft_figures', "Figure_2.jpg"), g, width = 4, height = 6, 
+ggsave(file = file.path(draft_figs_dir, "Figure_2.jpg"), g, width = 4, height = 6, 
        dpi = 1200, scale = 4, units = "cm") #saves g
 
 
@@ -41,5 +41,5 @@ p6 <- make_map(figure_2_df, 'structures_destroyed', '(E) Homes Destroyed', 'log(
 # grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 2)
 g <- arrangeGrob(p1, p2, p3, p4, p5, p6, ncol = 3)
 
-ggsave(file = file.path('results', 'draft_figures', "Figure_2_horizontal.jpg"), g, width = 6, height = 4, 
+ggsave(file = file.path(draft_figs_dir, "Figure_2_horizontal.jpg"), g, width = 6, height = 4, 
        dpi = 1200, scale = 4, units = "cm") #saves g
