@@ -1,6 +1,6 @@
 
 x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", "lme4", 'RColorBrewer',
-       'lubridate', "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom", 'openxlsx')
+       'lubridate', "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom", 'openxlsx', 'reshape', 'pdftools')
 lapply(x, library, character.only = TRUE, verbose = FALSE)
 
 # Load all external custom functions
@@ -24,8 +24,9 @@ var_dir <- list(data_dir, raw_dir, raw_dir_ag, raw_dir_us, raw_dir_mtbs, raw_dir
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
 # Input data folders
-bounds_dir <- file.path(raw_dir, 'bounds')
-ics209_dir <- file.path(raw_dir, "ics_209")
+bounds_dir <- file.path(data_dir, 'bounds')
+fire_dir <- file.path(data_dir, 'fire')
+ics209_dir <- file.path(data_dir, "ics_209")
 ics209_input_dir <- file.path(ics209_dir, "input_tbls")
 ics209_output_dir <- file.path(ics209_dir, "output_tbls")
 ics209_spatial_dir <- file.path(ics209_dir, "spatial")
