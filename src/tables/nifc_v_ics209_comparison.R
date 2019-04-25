@@ -1,6 +1,3 @@
-library(pdftools)
-library(tidyverse)
-library(reshape)
 
 download.file('https://www.nifc.gov/fireInfo/fireInfo_documents/SuppCosts.pdf',
               file.path(ics209_input_dir, 'SuppCosts.pdf'))
