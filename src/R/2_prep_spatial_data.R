@@ -102,7 +102,7 @@ if(!file.exists(file.path(ics_spatial, "ics209-plus_incidents_1999to2014.gpkg"))
     st_transform(crs = st_crs(states))
   
   conus_209 <- ics_209_pt %>%
-    st_join(., states) %>%
+    st_intersection(., states) %>%
     st_join(., ecoregions_l3) %>%
     st_join(., gacc) %>%
     st_join(., hexnet_50k) %>%
