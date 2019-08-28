@@ -1,4 +1,4 @@
-rim_fire <- fread(file.path(ics_inputs, 'ics209-plus-wf_sitreps_1999to2014.csv')) %>%
+rim_fire <- fread(file.path(ics209_input_dir, 'ics209-plus-wf_sitreps_1999to2014.csv')) %>%
   filter(INCIDENT_ID == '2013_CA-STF-002857_RIM')
 
 rim_fire_df <- as.data.frame(rim_fire) %>%
@@ -10,7 +10,7 @@ rim_fire_df <- as.data.frame(rim_fire) %>%
             structures_destroyed = max(STR_DESTROYED),
             total_personnel = max(TOTAL_PERSONNEL),
             burned_area_acres = max(ACRES),
-            total_threatened = max(STR_THREATENED)) %>%
+            total_threatened = max(STR_THREATENED)) %>% 
   mutate_if(is.numeric, funs(ifelse(is.na(.), 0, .))) %>%
   droplevels()
 
@@ -97,7 +97,7 @@ rim_fire_map <- rasterVis::levelplot(modis_burn_dates,
   latticeExtra::layer(sp.polygons(as(rim_fire_mtbs, 'Spatial'), lwd = 2)) +
   latticeExtra::layer(sp.points(as(rim_fire_pt, 'Spatial'), pch = 16, size = 8, col = 'black'))
 
-# grid.arrange(rim_fire_map, arrangeGrob(p1, p2, p3, p4, p5, p6, ncol = 2), nrow = 1)
+# arrangeGrob(rim_fire_map, arrangeGrob(p1, p2, p3, p4, p5, p6, ncol = 2), nrow = 1)
 g <- arrangeGrob(rim_fire_map, arrangeGrob(p1, p2, p3, p4, p5, p6, ncol = 2), nrow = 1)
 
 ggsave(file = file.path(draft_figs_dir, "Figure_3.pdf"), g, width = 8, height = 5, 
