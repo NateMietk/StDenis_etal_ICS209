@@ -4,7 +4,7 @@ figure_1_df_conus <- conus_209 %>%
   group_by(hexid50k) %>%
   summarise(n = n()) %>%
   as.data.frame() %>%
-  dplyr::select(-geom) %>%
+  dplyr::select(-contains('geom')) %>%
   left_join(hexnet_50k, ., by = 'hexid50k') %>%
   na.omit(n)
 conus <- states %>%
@@ -35,7 +35,7 @@ figure_1_df_ak <- conus_209 %>%
   group_by(hexid50k) %>%
   summarise(n = n()) %>%
   as.data.frame() %>%
-  dplyr::select(-geom) %>%
+  dplyr::select(-contains('geom')) %>%
   left_join(hexnet_50k, ., by = 'hexid50k') %>%
   na.omit(n)
 ak <- states %>%
