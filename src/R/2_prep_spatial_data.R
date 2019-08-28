@@ -1,10 +1,10 @@
 # USA states
-if(!exists(states)) {
+if(!exists('states')) {
   download_data(url = "https://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_20m.zip",
                 dir = raw_dir_us,
                 layer = "cb_2016_us_state_20m") 
   
-  states <- st_read(dsn = us_shp, quiet= TRUE) %>%
+  states <- st_read(dsn = raw_dir_us, quiet= TRUE) %>%
     st_transform(proj_ea) %>%  # e.g. US National Atlas Equal Area
     filter(!(NAME %in% c("Hawaii", "Puerto Rico",
                          "Commonwealth of the Northern Mariana Islands", "United States Virgin Islands",
@@ -18,7 +18,7 @@ if(!file.exists(file.path(fire_dir, 'mtbs.gpkg'))) {
   # Annoyingly I have to sign into ArcGIS Online to download the data
   # https://hub.arcgis.com/items/72213d9266eb4aefa4403a1bf21dfd61?geometry=-266.765%2C-40.581%2C93.235%2C86.606
   
-  gacc <- st_read(dsn = gacc_prefix, layer = 'National_GACC_2018', quiet= TRUE) %>%
+  gacc <- st_read(dsn = raw_dir_gacc, layer = 'National_GACC_2018', quiet= TRUE) %>%
     st_transform(st_crs(states)) %>%
     st_intersection(., st_union(states)) %>%
     rename_all(tolower) %>%
@@ -58,13 +58,13 @@ if(!file.exists(file.path(fire_dir, 'mtbs.gpkg'))) {
 
 # Level 3 ecoregions
 if (!exists("ecoregions_l3")){
-  if(!file.exists(file.path(ecoregion_prefix, 'us_eco_l3.shp'))) {
+  if(!file.exists(file.path(raw_dir_ecoregion, 'us_eco_l3.shp'))) {
     download_data("ftp://newftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3.zip",
-                  ecoregion_prefix,
+                  raw_dir_ecoregion,
                   'us_eco_l3')
   }
   
-  ecoregions_l3 <- st_read(file.path(ecoregion_prefix, 'us_eco_l3.shp')) %>%
+  ecoregions_l3 <- st_read(file.path(raw_dir_ecoregion, 'us_eco_l3.shp')) %>%
     sf::st_simplify(., preserveTopology = TRUE, dTolerance = 1000)  %>%
     sf::st_transform(st_crs(states)) %>%
     dplyr::mutate(NA_L3NAME = as.character(NA_L3NAME),
@@ -89,9 +89,9 @@ if (!file.exists(file.path(bounds_dir, 'hex_grid_50k.gpkg'))) {
 }
 
 # ICS-209-PLUS-WF
-if(!file.exists(file.path(ics_spatial, "ics209-plus_incidents_1999to2014.gpkg"))) {
+if(!file.exists(file.path(ics209_spatial_dir, "ics209-plus_incidents_1999to2014.gpkg"))) {
   # Import ICS-209 from 1999-2014
-  ics_209 <- fread(file.path(ics_inputs, "ics209-plus-wf_incidents_1999to2014.csv")) %>%
+  ics_209 <- fread(file.path(ics209_input_dir, "ics209-plus-wf_incidents_1999to2014.csv")) %>%
     as_tibble() %>%
     mutate(POO_LONGITUDE = ifelse(is.na(POO_LONGITUDE),0,as.numeric(POO_LONGITUDE)),
            POO_LATITUDE = ifelse(is.na(POO_LATITUDE),0,as.numeric(POO_LATITUDE)))
@@ -112,8 +112,8 @@ if(!file.exists(file.path(ics_spatial, "ics209-plus_incidents_1999to2014.gpkg"))
            na_l2name = stringr::str_to_title(na_l2name),
            na_l1name = stringr::str_to_title(na_l1name))
   
-  st_write(conus_209, file.path(ics_spatial, "ics209-plus_incidents_1999to2014.gpkg"), delete_layer=TRUE)
+  st_write(conus_209, file.path(ics209_spatial_dir, "ics209-plus_incidents_1999to2014.gpkg"), delete_layer=TRUE)
 
 } else {
-  conus_209 <- st_read(file.path(ics_spatial, "ics209-plus_incidents_1999to2014.gpkg"))
+  conus_209 <- st_read(file.path(ics209_spatial_dir, "ics209-plus_incidents_1999to2014.gpkg"))
 }
