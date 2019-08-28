@@ -12,7 +12,7 @@ figure_2_df <- conus_209 %>%
             costs = log(sum(projected_final_im_cost, na.rm = TRUE)),
             total_threatened = log(sum(str_threatened_max, na.rm = TRUE))) %>%
   as.data.frame() %>%
-  dplyr::select(-geom) %>%
+  dplyr::select(-contains('geom')) %>%
   left_join(hexnet_50k, ., by = 'hexid50k') %>%
   na.omit(n)
 
