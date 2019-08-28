@@ -1,5 +1,5 @@
 
-x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", "lme4", 'RColorBrewer',
+x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", 'RColorBrewer',
        'lubridate', "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom", 'openxlsx', 'reshape', 'pdftools')
 lapply(x, library, character.only = TRUE, verbose = FALSE)
 
@@ -20,14 +20,14 @@ raw_dir_ecoregion <- file.path(raw_dir, "ecoregions")
 raw_dir_ecoregionl4 <- file.path(raw_dir, "us_eco_l4")
 
 # Check if directory exists for all variable aggregate outputs, if not then create
-var_dir <- list(data_dir, raw_dir, raw_dir_ag, raw_dir_us, raw_dir_mtbs, raw_dir_gacc, raw_dir_ecoregion, raw_dir_ecoregionl4)
+var_dir <- list(data_dir, raw_dir, raw_dir_us, raw_dir_mtbs, raw_dir_gacc, raw_dir_ecoregion, raw_dir_ecoregionl4)
 lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALSE))
 
 # Input data folders
 bounds_dir <- file.path(data_dir, 'bounds')
 fire_dir <- file.path(data_dir, 'fire')
 ics209_dir <- file.path(data_dir, "ics_209")
-ics209_input_dir <- file.path(ics209_dir, "input_tbls")
+ics209_input_dir <- file.path(data_dir, "version1.1")
 ics209_output_dir <- file.path(ics209_dir, "output_tbls")
 ics209_spatial_dir <- file.path(ics209_dir, "spatial")
 ecoregion_dir <- file.path(bounds_dir, "ecoregions")
