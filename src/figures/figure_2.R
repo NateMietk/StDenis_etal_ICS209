@@ -17,8 +17,8 @@ figure_2_df <- conus_209 %>%
   na.omit(n)
 
 p1 <- make_map(figure_2_df, 'fsr', '(A) Fire spread rate', 'log(Max FSR (acres/day))', conus_mask) 
-p2 <- make_map(figure_2_df, 'burned_area_acres', '(B) Burned Area', 'log(Burned Area)', conus_mask) 
-p3 <- make_map(figure_2_df, 'costs', '(C) Costs', 'log(Costs)', conus_mask)
+p2 <- make_map(figure_2_df, 'burned_area_acres', '(B) Burned Area', 'log(Burned Area (acres))', conus_mask) 
+p3 <- make_map(figure_2_df, 'costs', '(C) Costs', 'log(Costs ($))', conus_mask)
 p4 <- make_map(figure_2_df, 'total_personnel', '(D) Total Personnel', 'log(Total Personnel)', conus_mask)
 p5 <- make_map(figure_2_df, 'total_threatened', '(F) Homes Threatened', 'log(Homes Threatened)', conus_mask)
 p6 <- make_map(figure_2_df, 'structures_destroyed', '(E) Homes Destroyed', 'log(Homes Destroyed)', conus_mask)
