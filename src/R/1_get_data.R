@@ -1,5 +1,5 @@
 
-x <- c("data.table", "tidyverse", "tidyverse", "magrittr", "sf", "gridExtra", "raster", 'RColorBrewer',
+x <- c("data.table", "tidyverse", "magrittr", "sf", "gridExtra", "raster", 'RColorBrewer',
        'lubridate', "assertthat", "purrr", "httr", "rvest", "lubridate", "parallel", "broom", 'openxlsx', 'reshape', 'pdftools')
 lapply(x, library, character.only = TRUE, verbose = FALSE)
 
@@ -27,7 +27,7 @@ lapply(var_dir, function(x) if(!dir.exists(x)) dir.create(x, showWarnings = FALS
 bounds_dir <- file.path(data_dir, 'bounds')
 fire_dir <- file.path(data_dir, 'fire')
 ics209_dir <- file.path(data_dir, "ics_209")
-ics209_input_dir <- file.path(data_dir, "version1.1")
+ics209_input_dir <- file.path(data_dir, "version1.1.1")
 ics209_output_dir <- file.path(ics209_dir, "output_tbls")
 ics209_spatial_dir <- file.path(ics209_dir, "spatial")
 ecoregion_dir <- file.path(bounds_dir, "ecoregions")
