@@ -19,7 +19,7 @@ p1 <- rim_fire_df %>%
   geom_line(color = 'gray') +
   geom_point() +
   ylab('Max Fire Spread Rate (acres/day)') + xlab('') +
-  ggtitle("(B) Max Fire Spread Rate (acres/day)") +
+  ggtitle("(b) Max Fire Spread Rate (acres/day)") +
   theme_pub() +
   theme(axis.text.x=element_blank())
 
@@ -28,7 +28,7 @@ p2 <- rim_fire_df %>%
   geom_line(color = 'gray') +
   geom_point() +
   ylab('Burned area (acres)') + xlab('') +
-  ggtitle("(C) Burned area (acres)") +
+  ggtitle("(c) Burned area (acres)") +
   theme_pub() +
   theme(axis.text.x=element_blank())
 
@@ -38,7 +38,7 @@ p3 <- rim_fire_df %>%
   geom_line(color = 'gray') +
   geom_point() +
   ylab('Costs ($)') + xlab('') +
-  ggtitle("(D) Costs ($)") +
+  ggtitle("(d) Costs ($)") +
   theme_pub() +
   theme(axis.text.x=element_blank()) 
 
@@ -47,7 +47,7 @@ p4 <- rim_fire_df %>%
   geom_line(color = 'gray') +
   geom_point() +
   ylab('Total Personnel') + xlab('') +
-  ggtitle("(E) Total Personnel") +
+  ggtitle("(e) Total Personnel") +
   theme_pub() +
   theme(axis.text.x=element_blank())
 
@@ -56,7 +56,7 @@ p5 <- rim_fire_df %>%
   geom_line(color = 'gray') +
   geom_point() +
   ylab('Total Threatened') + xlab('Report Days') +
-  ggtitle("(F) Structures Threatened") +
+  ggtitle("(f) Structures Threatened") +
   theme_pub()
 
 p6 <- rim_fire_df %>%
@@ -64,7 +64,7 @@ p6 <- rim_fire_df %>%
   geom_line(color = 'gray') +
   geom_point() +
   ylab('Total Destroyed') + xlab('Report Days') +
-  ggtitle("(G) Structures Destroyed") +
+  ggtitle("(g) Structures Destroyed") +
   theme_pub()
 
 # Create the spatial 
