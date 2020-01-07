@@ -24,7 +24,7 @@ if(!file.exists(file.path(fire_dir, 'mtbs.gpkg'))) {
     rename_all(tolower) %>%
     dplyr::select(gacc_label, gacc_name)
   
-  st_write(mtbs, file.path(bounds_dir, 'gacc.gpkg'), delete_layer = TRUE)
+  st_write(gacc, file.path(bounds_dir, 'gacc.gpkg'), delete_layer = TRUE)
   
 } else {
   gacc <- st_read(file.path(bounds_dir, 'gacc.gpkg'))
